@@ -48,5 +48,10 @@
 
     <!-- Submit Button -->
     <button type="submit" class="btn">Log Symptoms</button>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+      <div class="progress-bar" [style.width]="getProgress() + '%'"></div>
+    </div>
   </form>
 </div>

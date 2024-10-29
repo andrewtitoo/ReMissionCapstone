@@ -1,10 +1,13 @@
 import { Component } from '@angular/core';
+import { ApiService } from '../../services/api.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-logger',
   templateUrl: './logger.component.html',
   standalone: true,
-  styleUrls: ['./logger.component.css']
+  styleUrls: ['./logger.component.css'],
+  imports: [FormsModule]  // Make sure FormsModule is included here
 })
 export class LoggerComponent {
   // Form fields
@@ -22,20 +25,37 @@ export class LoggerComponent {
     { name: 'Walking', selected: false }
   ];
 
-  constructor() {}
+  constructor(private apiService: ApiService) {}
 
   onSubmit(): void {
     const loggedData = {
-      painLevel: this.painLevel,
-      stressLevel: this.stressLevel,
-      sleepHours: this.sleepHours,
-      exerciseDone: this.exerciseDone,
-      exerciseTypes: this.exerciseTypes.filter(e => e.selected).map(e => e.name),
-      tookMedication: this.tookMedication
+      pain_level: this.painLevel,
+      stress_level: this.stressLevel,
+      sleep_hours: this.sleepHours,
+      exercise_done: this.exerciseDone,
+      exercise_types: this.exerciseTypes.filter(e => e.selected).map(e => e.name),
+      took_medication: this.tookMedication
     };
 
-    console.log('Logged Data:', loggedData);
-    // Placeholder: Here you would make a request to the backend to save the logged data
-    alert('Your symptoms have been logged successfully!');
+    // Send data to backend via ApiService
+    this.apiService.logSymptoms(loggedData).subscribe(
+      () => {
+        alert('Your symptoms have been logged successfully!');
+      },
+      (error: any) => {  // Fix for TS7006: Explicitly specifying the type of `error`
+        console.error('Error logging symptoms:', error);
+        alert('An error occurred while logging your symptoms. Please try again later.');
+      }
+    );
+  }
+
+  getProgress(): number {
+    let progress = 0;
+    if (this.painLevel > 0) progress += 20;
+    if (this.stressLevel > 0) progress += 20;
+    if (this.sleepHours > 0) progress += 20;
+    if (this.exerciseDone) progress += 20;
+    if (this.tookMedication) progress += 20;
+    return progress;
   }
 }

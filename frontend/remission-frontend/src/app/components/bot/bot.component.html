@@ -2,7 +2,7 @@
   <h1>Welcome to CHIIP - Your IBD Companion</h1>
 
   <div class="chat-box">
-    <div *ngFor="let message of messages" class="bot-message">
+    <div *ngFor="let message of messages; let i = index" [ngClass]="{'bot-message': true, 'user-message': i % 2 !== 0}">
       {{ message }}
     </div>
   </div>

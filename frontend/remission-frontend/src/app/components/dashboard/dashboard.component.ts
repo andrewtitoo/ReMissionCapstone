@@ -1,5 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { Chart, registerables } from 'chart.js';
+import { ApiService } from '../../services/api.service';
+
+interface SymptomLog {
+  logged_at: string;
+  pain_level: number;
+  stress_level: number;
+  sleep_hours: number;
+  exercise_done: boolean;
+  took_medication: boolean;
+}
 
 @Component({
   selector: 'app-dashboard',
@@ -9,25 +19,39 @@ import { Chart, registerables } from 'chart.js';
 })
 export class DashboardComponent implements OnInit {
 
-  constructor() {
+  constructor(private apiService: ApiService) {
     // Register Chart.js components
     Chart.register(...registerables);
   }
 
   ngOnInit(): void {
-    this.createSymptomTrendChart();
-    this.createStressLevelChart();
-    this.createPainExerciseChart();
+    this.fetchAndDisplayCharts();
   }
 
-  createSymptomTrendChart(): void {
+  fetchAndDisplayCharts(): void {
+    this.apiService.getSymptomLogs().subscribe(
+      (data: SymptomLog[]) => {
+        this.createSymptomTrendChart(data);
+        this.createStressLevelChart(data);
+        this.createPainExerciseChart(data);
+      },
+      (error: any) => {
+        console.error('Error fetching symptom logs:', error);
+      }
+    );
+  }
+
+  createSymptomTrendChart(data: SymptomLog[]): void {
+    const labels = data.map((entry: SymptomLog) => new Date(entry.logged_at).toLocaleDateString());
+    const symptomSeverity = data.map((entry: SymptomLog) => entry.pain_level);
+
     new Chart("symptomTrendChart", {
       type: 'line',
       data: {
-        labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+        labels,
         datasets: [{
           label: 'Symptom Severity',
-          data: [3, 5, 2, 4, 6, 1, 3],
+          data: symptomSeverity,
           fill: false,
           borderColor: 'rgba(75, 192, 192, 1)',
           tension: 0.1
@@ -35,19 +59,28 @@ export class DashboardComponent implements OnInit {
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+          },
+        }
       }
     });
   }
 
-  createStressLevelChart(): void {
+  createStressLevelChart(data: SymptomLog[]): void {
+    const labels = data.map((entry: SymptomLog) => new Date(entry.logged_at).toLocaleDateString());
+    const stressLevels = data.map((entry: SymptomLog) => entry.stress_level);
+
     new Chart("stressLevelChart", {
       type: 'bar',
       data: {
-        labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+        labels,
         datasets: [{
           label: 'Stress Level',
-          data: [5, 6, 4, 7, 5, 6, 3],
+          data: stressLevels,
           backgroundColor: 'rgba(255, 99, 132, 0.2)',
           borderColor: 'rgba(255, 99, 132, 1)',
           borderWidth: 1
@@ -55,19 +88,30 @@ export class DashboardComponent implements OnInit {
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+          },
+        }
       }
     });
   }
 
-  createPainExerciseChart(): void {
+  createPainExerciseChart(data: SymptomLog[]): void {
+    const highPainNoExercise = data.filter((entry: SymptomLog) => entry.pain_level > 7 && !entry.exercise_done).length;
+    const highPainExercise = data.filter((entry: SymptomLog) => entry.pain_level > 7 && entry.exercise_done).length;
+    const lowPainNoExercise = data.filter((entry: SymptomLog) => entry.pain_level <= 7 && !entry.exercise_done).length;
+    const lowPainExercise = data.filter((entry: SymptomLog) => entry.pain_level <= 7 && entry.exercise_done).length;
+
     new Chart("painExerciseChart", {
       type: 'doughnut',
       data: {
         labels: ['Pain High with No Exercise', 'Pain High with Exercise', 'Pain Low with No Exercise', 'Pain Low with Exercise'],
         datasets: [{
           label: 'Pain vs Exercise',
-          data: [10, 20, 30, 40],
+          data: [highPainNoExercise, highPainExercise, lowPainNoExercise, lowPainExercise],
           backgroundColor: [
             'rgba(255, 159, 64, 0.2)',
             'rgba(54, 162, 235, 0.2)',
@@ -85,7 +129,13 @@ export class DashboardComponent implements OnInit {
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+          },
+        }
       }
     });
   }

@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { ApiService } from '../../services/api.service';
 
 @Component({
   selector: 'app-bot',
@@ -9,22 +10,27 @@ import { Component, OnInit } from '@angular/core';
 export class BotComponent implements OnInit {
   messages: string[] = [];
 
-  constructor() {}
+  constructor(private apiService: ApiService) {}
 
   ngOnInit(): void {
-    // Start the conversation by sending default insights from CHIIP
     this.sendInitialInsights();
   }
 
   sendInitialInsights(): void {
-    // Placeholder: Here we would actually connect to backend to get real insights.
-    const insights = [
-      'Hello! I am CHIIP, your companion for IBD management. Here are some insights based on your latest symptom data.',
-      'It looks like your stress levels were higher than usual this week. Consider taking some time to relax and unwind.',
-      'You have missed your medication 2 times this week. Consistency is key in managing IBD symptoms—try to set reminders if needed.',
-      'On days when you exercised, your pain levels were generally lower. Keep up the great work with light exercise!'
-    ];
-
-    this.messages.push(...insights);
+    // Connect to the backend to get real insights from CHIIP
+    this.apiService.getBotAnalysis().subscribe(
+      (data) => {
+        if (data && data.analysis_summary) {
+          this.messages.push('Hello! I am CHIIP, your companion for IBD management. Here are some insights based on your latest symptom data:');
+          this.messages.push(data.analysis_summary);
+        } else {
+          this.messages.push('No recent insights available at the moment. Please log some symptoms for more detailed analysis.');
+        }
+      },
+      (error) => {
+        console.error('Error fetching insights from CHIIP:', error);
+        this.messages.push('An error occurred while fetching insights. Please try again later.');
+      }
+    );
   }
 }
