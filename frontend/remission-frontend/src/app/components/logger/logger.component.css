@@ -1,0 +1,54 @@
+.logger-container {
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+input[type="range"] {
+  width: 100%;
+}
+
+input[type="checkbox"] {
+  margin-right: 5px;
+}
+
+span {
+  font-weight: normal;
+  margin-left: 10px;
+}
+
+.exercise-types {
+  margin-top: 10px;
+  padding-left: 20px;
+}
+
+button.btn {
+  display: block;
+  margin: 20px auto;
+  padding: 10px 20px;
+  background-color: #333;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button.btn:hover {
+  background-color: #555;
+}

@@ -1,0 +1,52 @@
+<div class="logger-container">
+  <h1>Log Your Symptoms</h1>
+  <form (ngSubmit)="onSubmit()">
+
+    <!-- Pain Level -->
+    <div class="form-group">
+      <label for="painLevel">Pain Level (1-10)</label>
+      <input type="range" id="painLevel" name="painLevel" [(ngModel)]="painLevel" min="1" max="10" />
+      <span>{{ painLevel }}</span>
+    </div>
+
+    <!-- Stress Level -->
+    <div class="form-group">
+      <label for="stressLevel">Stress Level (1-10)</label>
+      <input type="range" id="stressLevel" name="stressLevel" [(ngModel)]="stressLevel" min="1" max="10" />
+      <span>{{ stressLevel }}</span>
+    </div>
+
+    <!-- Sleep Hours -->
+    <div class="form-group">
+      <label for="sleepHours">Sleep Hours (0-9+ hours)</label>
+      <input type="range" id="sleepHours" name="sleepHours" [(ngModel)]="sleepHours" min="0" max="9" />
+      <span>{{ sleepHours }} hours</span>
+    </div>
+
+    <!-- Exercise -->
+    <div class="form-group">
+      <label>Did you exercise today?</label>
+      <input type="checkbox" [(ngModel)]="exerciseDone" name="exerciseDone" />
+      <span *ngIf="exerciseDone">Yes</span>
+
+      <!-- If exercised, what kind? -->
+      <div *ngIf="exerciseDone" class="exercise-types">
+        <label>Type of Exercise</label>
+        <div *ngFor="let exercise of exerciseTypes">
+          <input type="checkbox" [(ngModel)]="exercise.selected" name="exercise-{{ exercise.name }}" />
+          <span>{{ exercise.name }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Medication -->
+    <div class="form-group">
+      <label>Did you take your medication today?</label>
+      <input type="checkbox" [(ngModel)]="tookMedication" name="tookMedication" />
+      <span *ngIf="tookMedication">Yes</span>
+    </div>
+
+    <!-- Submit Button -->
+    <button type="submit" class="btn">Log Symptoms</button>
+  </form>
+</div>
