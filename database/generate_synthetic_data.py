@@ -10,7 +10,7 @@ fake = Faker()
 conn = sqlite3.connect('remission.db')
 cursor = conn.cursor()
 
-# Generate synthetic users
+# Generate synthetic users with unique usernames and emails
 def generate_users(n):
     """
     Generates n users with random usernames, emails, and password hashes.
@@ -18,15 +18,37 @@ def generate_users(n):
     Args:
         n (int): Number of users to generate.
     """
-    users = []
-    for _ in range(n):
+    usernames = set()
+    emails = set()
+    users_added = 0
+
+    while users_added < n:
         username = fake.user_name()
         email = fake.email()
+
+        # Generate unique username and email within the current batch
+        while username in usernames:
+            username = fake.user_name()
+        while email in emails:
+            email = fake.email()
+
         password_hash = fake.sha256()
         created_at = fake.date_time_this_year().strftime('%Y-%m-%d %H:%M:%S')
-        users.append((username, email, password_hash, created_at))
-    cursor.executemany("INSERT INTO users (username, email, password_hash, created_at) VALUES (?, ?, ?, ?)", users)
-    conn.commit()
+
+        try:
+            # Try inserting user individually to catch any database-level uniqueness errors
+            cursor.execute("INSERT INTO users (username, email, password_hash, created_at) VALUES (?, ?, ?, ?)",
+                           (username, email, password_hash, created_at))
+            conn.commit()
+            # If insert succeeds, add to our tracking sets
+            usernames.add(username)
+            emails.add(email)
+            users_added += 1
+        except sqlite3.IntegrityError:
+            # If a UNIQUE constraint fails, retry with a new username/email
+            print("Duplicate found in database. Retrying with a new username/email.")
+
+generate_users(1000)  # Change this line in `main()` if needed
 
 # Generate synthetic symptom logs
 def generate_symptom_logs(user_ids, n):
@@ -49,7 +71,7 @@ def generate_symptom_logs(user_ids, n):
             diet_notes = fake.sentence(nb_words=6)
             additional_notes = fake.sentence(nb_words=8)
             logged_at = fake.date_time_this_year().strftime('%Y-%m-%d %H:%M:%S')
-            timestamp = fake.time().strftime('%H:%M:%S')
+            timestamp = fake.time()  # Use the time string directly
             symptom_logs.append((user_id, pain_level, stress_level, sleep_hours, exercise_done, exercise_type, took_medication, diet_notes, additional_notes, logged_at, timestamp))
     cursor.executemany("INSERT INTO symptom_logs (user_id, pain_level, stress_level, sleep_hours, exercise_done, exercise_type, took_medication, diet_notes, additional_notes, logged_at, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", symptom_logs)
     conn.commit()
