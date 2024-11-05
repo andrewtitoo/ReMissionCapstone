@@ -1,14 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../services/api.service';
+import { NgClass } from '@angular/common';  // Corrected import
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-bot',
   templateUrl: './bot.component.html',
   standalone: true,
-  styleUrls: ['./bot.component.css']
+  styleUrls: ['./bot.component.css'],
+  imports: [NgClass, FormsModule]
 })
 export class BotComponent implements OnInit {
   messages: string[] = [];
+  userMessage: string = '';  // Track user input for the chat
 
   constructor(private apiService: ApiService) {}
 
@@ -17,7 +21,6 @@ export class BotComponent implements OnInit {
   }
 
   sendInitialInsights(): void {
-    // Connect to the backend to get real insights from CHIIP
     this.apiService.getBotAnalysis().subscribe(
       (data) => {
         if (data && data.analysis_summary) {
@@ -32,5 +35,25 @@ export class BotComponent implements OnInit {
         this.messages.push('An error occurred while fetching insights. Please try again later.');
       }
     );
+  }
+
+  sendMessage(): void {
+    if (this.userMessage.trim() !== '') {
+      this.messages.push(this.userMessage);  // Display user message
+      this.apiService.getBotResponse(this.userMessage).subscribe(
+        (data) => {
+          if (data && data.response) {
+            this.messages.push(data.response);  // Display CHIIP's response
+          } else {
+            this.messages.push('I am here to help. Please log symptoms or ask me about IBD management!');
+          }
+        },
+        (error) => {
+          console.error('Error fetching response from CHIIP:', error);
+          this.messages.push('An error occurred while fetching the response. Please try again later.');
+        }
+      );
+      this.userMessage = '';  // Clear input after sending
+    }
   }
 }

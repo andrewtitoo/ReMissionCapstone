@@ -4,46 +4,49 @@
   margin: 0 auto;
   text-align: center;
   font-family: 'Arial, sans-serif';
+  color: #333;  /* Ensure text is visible on a white background */
 }
 
 h1 {
-  color: #4a90e2;
-  font-size: 24px;
-  margin-bottom: 15px;
+  color: #3a6ea5; /* Softer blue for a friendlier tone */
+  font-size: 26px;
+  margin-bottom: 20px;
 }
 
 .chat-box {
-  height: 350px;
+  height: 400px; /* Slightly increased height for more messages */
   border: 2px solid #cfd8dc;
-  padding: 10px;
+  padding: 15px;
   overflow-y: auto;
   margin-top: 20px;
   background-color: #ffffff;
-  border-radius: 15px;
+  border-radius: 10px;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .bot-message {
   text-align: left;
-  margin: 15px 0;
-  padding: 15px;
-  background-color: #e3f2fd;
-  border-radius: 15px;
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #e1f5fe; /* Slightly different blue for contrast */
+  color: #0277bd; /* Text color to align with theme */
+  border-radius: 12px;
   display: inline-block;
-  max-width: 80%;
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  max-width: 75%;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
   animation: fadeIn 0.5s ease-in-out;
 }
 
 .user-message {
   text-align: right;
-  margin: 15px 0;
-  padding: 15px;
+  margin: 10px 0;
+  padding: 10px;
   background-color: #c8e6c9;
-  border-radius: 15px;
+  color: #2e7d32;
+  border-radius: 12px;
   display: inline-block;
-  max-width: 80%;
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  max-width: 75%;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
   animation: fadeIn 0.5s ease-in-out;
 }
 

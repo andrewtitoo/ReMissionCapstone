@@ -2,18 +2,16 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-// Injectable decorator to allow the service to be used in any component
 @Injectable({
-  providedIn: 'root'  // Provided in root scope to make it globally available
+  providedIn: 'root'
 })
 export class ApiService {
-  // Backend API base URL
-  private baseUrl = 'http://localhost:5000/api';  // Update this if your backend URL changes
+  private baseUrl = 'http://localhost:5000/api';
 
   constructor(private http: HttpClient) {}
 
   /**
-   * Log symptoms for a user.
+   * Logs symptoms for a user.
    * @param symptomData Object containing symptom data (pain level, stress, etc.)
    * @returns Observable for API response
    */
@@ -24,7 +22,7 @@ export class ApiService {
   }
 
   /**
-   * Get all logged symptoms for the current user.
+   * Retrieves all logged symptoms for the current user.
    * @returns Observable for logged symptom data
    */
   getSymptomLogs(): Observable<any> {
@@ -33,11 +31,22 @@ export class ApiService {
   }
 
   /**
-   * Get trend analysis from CHIIP, the bot.
+   * Fetches trend analysis insights from CHIIP.
    * @returns Observable for bot analysis response
    */
   getBotAnalysis(): Observable<any> {
-    const url = `${this.baseUrl}/bot-analysis`;  // Assuming the backend provides this endpoint
+    const url = `${this.baseUrl}/bot-analysis`;
     return this.http.get(url);
+  }
+
+  /**
+   * Sends a user message to CHIIP and retrieves a response.
+   * @param userMessage The message from the user to the bot
+   * @returns Observable with the bot's response
+   */
+  getBotResponse(userMessage: string): Observable<any> {
+    const url = `${this.baseUrl}/bot-response`;
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+    return this.http.post(url, { message: userMessage }, { headers });
   }
 }

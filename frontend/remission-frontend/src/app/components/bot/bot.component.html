@@ -2,8 +2,16 @@
   <h1>Welcome to CHIIP - Your IBD Companion</h1>
 
   <div class="chat-box">
-    <div *ngFor="let message of messages; let i = index" [ngClass]="{'bot-message': true, 'user-message': i % 2 !== 0}">
+    <div *ngFor="let message of messages; let i = index"
+         [ngClass]="{'bot-message': i % 2 === 0, 'user-message': i % 2 !== 0}">
       {{ message }}
     </div>
+  </div>
+
+  <!-- Input area for user interaction -->
+  <div class="user-input">
+    <input type="text" [(ngModel)]="userMessage" placeholder="Type a message to CHIIP..."
+           (keyup.enter)="sendMessage()" />
+    <button (click)="sendMessage()">Send</button>
   </div>
 </div>
