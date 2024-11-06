@@ -12,18 +12,39 @@
   color: white;
   text-decoration: none;
   margin: 0 20px;
+  padding-bottom: 5px;
   transition: color 0.3s, border-bottom 0.3s;
 }
 
-.navbar-links a:hover {
+.navbar a:hover,
+.navbar a:focus {
   color: #ffcc00;
+  border-bottom: 2px solid #ffcc00;
 }
 
 .navbar .brand-logo {
   font-size: 1.8em;
   font-weight: bold;
+  cursor: pointer;
 }
 
+/* Active Link Styling */
 .navbar-links a.active {
   border-bottom: 2px solid #ffcc00;
+}
+
+/* Responsive Design for Smaller Screens */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    padding: 10px;
+  }
+
+  .navbar .brand-logo {
+    margin-bottom: 10px;
+  }
+
+  .navbar-links a {
+    margin: 5px 0;
+  }
 }
