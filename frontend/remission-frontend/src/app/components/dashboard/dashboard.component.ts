@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Chart, registerables } from 'chart.js';
 import { ApiService } from '../../services/api.service';
+import { CommonModule } from '@angular/common';
+
 
 interface SymptomLog {
   logged_at: string;
