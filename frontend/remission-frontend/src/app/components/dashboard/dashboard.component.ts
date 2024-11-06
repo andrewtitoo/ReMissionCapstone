@@ -18,9 +18,10 @@ interface SymptomLog {
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
+  loading: boolean = true;  // Loading indicator
+  errorMessage: string | null = null;  // Error message for failed API calls
 
   constructor(private apiService: ApiService) {
-    // Register Chart.js components
     Chart.register(...registerables);
   }
 
@@ -34,16 +35,19 @@ export class DashboardComponent implements OnInit {
         this.createSymptomTrendChart(data);
         this.createStressLevelChart(data);
         this.createPainExerciseChart(data);
+        this.loading = false;
       },
       (error: any) => {
         console.error('Error fetching symptom logs:', error);
+        this.errorMessage = 'Failed to load data. Please try again later.';
+        this.loading = false;
       }
     );
   }
 
   createSymptomTrendChart(data: SymptomLog[]): void {
-    const labels = data.map((entry: SymptomLog) => new Date(entry.logged_at).toLocaleDateString());
-    const symptomSeverity = data.map((entry: SymptomLog) => entry.pain_level);
+    const labels = data.map(entry => new Date(entry.logged_at).toLocaleDateString());
+    const symptomSeverity = data.map(entry => entry.pain_level);
 
     new Chart("symptomTrendChart", {
       type: 'line',
@@ -52,27 +56,23 @@ export class DashboardComponent implements OnInit {
         datasets: [{
           label: 'Symptom Severity',
           data: symptomSeverity,
-          fill: false,
-          borderColor: 'rgba(75, 192, 192, 1)',
-          tension: 0.1
+          borderColor: '#3a6ea5',
+          tension: 0.1,
         }]
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false,
         plugins: {
-          legend: {
-            display: true,
-            position: 'top',
-          },
+          legend: { position: 'top' },
+          title: { display: true, text: 'Symptom Severity Over Time' }
         }
       }
     });
   }
 
   createStressLevelChart(data: SymptomLog[]): void {
-    const labels = data.map((entry: SymptomLog) => new Date(entry.logged_at).toLocaleDateString());
-    const stressLevels = data.map((entry: SymptomLog) => entry.stress_level);
+    const labels = data.map(entry => new Date(entry.logged_at).toLocaleDateString());
+    const stressLevels = data.map(entry => entry.stress_level);
 
     new Chart("stressLevelChart", {
       type: 'bar',
@@ -81,60 +81,52 @@ export class DashboardComponent implements OnInit {
         datasets: [{
           label: 'Stress Level',
           data: stressLevels,
-          backgroundColor: 'rgba(255, 99, 132, 0.2)',
-          borderColor: 'rgba(255, 99, 132, 1)',
+          backgroundColor: '#ffcc00',
+          borderColor: '#ffab00',
           borderWidth: 1
         }]
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false,
         plugins: {
-          legend: {
-            display: true,
-            position: 'top',
-          },
+          legend: { position: 'top' },
+          title: { display: true, text: 'Average Stress Levels' }
         }
       }
     });
   }
 
   createPainExerciseChart(data: SymptomLog[]): void {
-    const highPainNoExercise = data.filter((entry: SymptomLog) => entry.pain_level > 7 && !entry.exercise_done).length;
-    const highPainExercise = data.filter((entry: SymptomLog) => entry.pain_level > 7 && entry.exercise_done).length;
-    const lowPainNoExercise = data.filter((entry: SymptomLog) => entry.pain_level <= 7 && !entry.exercise_done).length;
-    const lowPainExercise = data.filter((entry: SymptomLog) => entry.pain_level <= 7 && entry.exercise_done).length;
+    const highPainNoExercise = data.filter(entry => entry.pain_level > 7 && !entry.exercise_done).length;
+    const highPainExercise = data.filter(entry => entry.pain_level > 7 && entry.exercise_done).length;
+    const lowPainNoExercise = data.filter(entry => entry.pain_level <= 7 && !entry.exercise_done).length;
+    const lowPainExercise = data.filter(entry => entry.pain_level <= 7 && entry.exercise_done).length;
 
     new Chart("painExerciseChart", {
       type: 'doughnut',
       data: {
-        labels: ['Pain High with No Exercise', 'Pain High with Exercise', 'Pain Low with No Exercise', 'Pain Low with Exercise'],
+        labels: [
+          'Pain High with No Exercise',
+          'Pain High with Exercise',
+          'Pain Low with No Exercise',
+          'Pain Low with Exercise'
+        ],
         datasets: [{
-          label: 'Pain vs Exercise',
           data: [highPainNoExercise, highPainExercise, lowPainNoExercise, lowPainExercise],
           backgroundColor: [
-            'rgba(255, 159, 64, 0.2)',
-            'rgba(54, 162, 235, 0.2)',
-            'rgba(255, 206, 86, 0.2)',
-            'rgba(75, 192, 192, 0.2)'
-          ],
-          borderColor: [
-            'rgba(255, 159, 64, 1)',
-            'rgba(54, 162, 235, 1)',
-            'rgba(255, 206, 86, 1)',
-            'rgba(75, 192, 192, 1)'
+            '#ff7043',
+            '#42a5f5',
+            '#ffee58',
+            '#66bb6a'
           ],
           borderWidth: 1
         }]
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false,
         plugins: {
-          legend: {
-            display: true,
-            position: 'top',
-          },
+          legend: { position: 'top' },
+          title: { display: true, text: 'Pain Levels vs Exercise' }
         }
       }
     });

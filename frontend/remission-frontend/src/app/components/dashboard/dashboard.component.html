@@ -1,7 +1,12 @@
 <div class="dashboard-container">
   <h1>Welcome to Your Symptom Dashboard</h1>
 
-  <div class="charts-container">
+  <!-- Loading Spinner or Error Message -->
+  <div *ngIf="loading" class="loading">Loading data...</div>
+  <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+  <!-- Charts Container -->
+  <div class="charts-container" *ngIf="!loading && !errorMessage">
     <div class="chart">
       <h3>Symptom Trend Over Time</h3>
       <canvas id="symptomTrendChart"></canvas>
