@@ -1,12 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
   private baseUrl = 'http://localhost:5000/api';
+  private headers = new HttpHeaders({ 'Content-Type': 'application/json' });
 
   constructor(private http: HttpClient) {}
 
@@ -17,8 +19,10 @@ export class ApiService {
    */
   logSymptoms(symptomData: any): Observable<any> {
     const url = `${this.baseUrl}/log-symptoms`;
-    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    return this.http.post(url, symptomData, { headers });
+    return this.http.post(url, symptomData, { headers: this.headers })
+      .pipe(
+        catchError(this.handleError('logging symptoms'))
+      );
   }
 
   /**
@@ -27,7 +31,10 @@ export class ApiService {
    */
   getSymptomLogs(): Observable<any> {
     const url = `${this.baseUrl}/symptom-logs`;
-    return this.http.get(url);
+    return this.http.get(url)
+      .pipe(
+        catchError(this.handleError('fetching symptom logs'))
+      );
   }
 
   /**
@@ -36,7 +43,10 @@ export class ApiService {
    */
   getBotAnalysis(): Observable<any> {
     const url = `${this.baseUrl}/bot-analysis`;
-    return this.http.get(url);
+    return this.http.get(url)
+      .pipe(
+        catchError(this.handleError('fetching bot analysis'))
+      );
   }
 
   /**
@@ -46,7 +56,23 @@ export class ApiService {
    */
   getBotResponse(userMessage: string): Observable<any> {
     const url = `${this.baseUrl}/bot-response`;
-    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    return this.http.post(url, { message: userMessage }, { headers });
+    return this.http.post(url, { message: userMessage }, { headers: this.headers })
+      .pipe(
+        catchError(this.handleError('sending bot message'))
+      );
+  }
+
+  /**
+   * Handles errors from API calls and logs them.
+   * Provides a default error message for user notification.
+   * @param operation Description of the failed operation
+   * @returns Observable with error information
+   */
+  private handleError(operation = 'operation') {
+    return (error: any): Observable<never> => {
+      console.error(`Error during ${operation}:`, error);
+      alert(`An error occurred while ${operation}. Please try again later.`);
+      return throwError(() => new Error('Something went wrong with the network request.'));
+    };
   }
 }
