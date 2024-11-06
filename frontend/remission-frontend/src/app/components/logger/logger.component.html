@@ -5,21 +5,21 @@
     <!-- Pain Level -->
     <div class="form-group">
       <label for="painLevel">Pain Level (1-10)</label>
-      <input type="range" id="painLevel" name="painLevel" [(ngModel)]="painLevel" min="1" max="10" />
+      <input type="range" id="painLevel" name="painLevel" [(ngModel)]="painLevel" min="1" max="10" required />
       <span>{{ painLevel }}</span>
     </div>
 
     <!-- Stress Level -->
     <div class="form-group">
       <label for="stressLevel">Stress Level (1-10)</label>
-      <input type="range" id="stressLevel" name="stressLevel" [(ngModel)]="stressLevel" min="1" max="10" />
+      <input type="range" id="stressLevel" name="stressLevel" [(ngModel)]="stressLevel" min="1" max="10" required />
       <span>{{ stressLevel }}</span>
     </div>
 
     <!-- Sleep Hours -->
     <div class="form-group">
       <label for="sleepHours">Sleep Hours (0-9+ hours)</label>
-      <input type="range" id="sleepHours" name="sleepHours" [(ngModel)]="sleepHours" min="0" max="9" />
+      <input type="range" id="sleepHours" name="sleepHours" [(ngModel)]="sleepHours" min="0" max="9" required />
       <span>{{ sleepHours }} hours</span>
     </div>
 
@@ -47,11 +47,15 @@
     </div>
 
     <!-- Submit Button -->
-    <button type="submit" class="btn">Log Symptoms</button>
+    <button type="submit" class="btn" [disabled]="!isFormValid()">Log Symptoms</button>
 
     <!-- Progress Bar -->
     <div class="progress-container">
       <div class="progress-bar" [style.width]="getProgress() + '%'"></div>
     </div>
   </form>
+
+  <!-- Success/Error Messages -->
+  <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+  <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
 </div>

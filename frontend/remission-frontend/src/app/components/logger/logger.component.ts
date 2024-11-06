@@ -7,17 +7,17 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './logger.component.html',
   standalone: true,
   styleUrls: ['./logger.component.css'],
-  imports: [FormsModule]  // Make sure FormsModule is included here
+  imports: [FormsModule]
 })
 export class LoggerComponent {
-  // Form fields
   painLevel: number = 5;
   stressLevel: number = 5;
   sleepHours: number = 7;
   exerciseDone: boolean = false;
   tookMedication: boolean = false;
+  successMessage: string = '';
+  errorMessage: string = '';
 
-  // Exercise types
   exerciseTypes = [
     { name: 'Cardio', selected: false },
     { name: 'Strength', selected: false },
@@ -28,6 +28,8 @@ export class LoggerComponent {
   constructor(private apiService: ApiService) {}
 
   onSubmit(): void {
+    if (!this.isFormValid()) return;
+
     const loggedData = {
       pain_level: this.painLevel,
       stress_level: this.stressLevel,
@@ -37,25 +39,40 @@ export class LoggerComponent {
       took_medication: this.tookMedication
     };
 
-    // Send data to backend via ApiService
     this.apiService.logSymptoms(loggedData).subscribe(
       () => {
-        alert('Your symptoms have been logged successfully!');
+        this.successMessage = 'Your symptoms have been logged successfully!';
+        this.resetForm();
       },
-      (error: any) => {  // Fix for TS7006: Explicitly specifying the type of `error`
+      (error: any) => {
         console.error('Error logging symptoms:', error);
-        alert('An error occurred while logging your symptoms. Please try again later.');
+        this.errorMessage = 'An error occurred while logging your symptoms. Please try again later.';
       }
     );
   }
 
+  isFormValid(): boolean {
+    return this.painLevel > 0 && this.stressLevel > 0 && this.sleepHours >= 0;
+  }
+
   getProgress(): number {
     let progress = 0;
-    if (this.painLevel > 0) progress += 20;
-    if (this.stressLevel > 0) progress += 20;
-    if (this.sleepHours > 0) progress += 20;
-    if (this.exerciseDone) progress += 20;
-    if (this.tookMedication) progress += 20;
+    if (this.painLevel > 0) progress += 25;
+    if (this.stressLevel > 0) progress += 25;
+    if (this.sleepHours >= 0) progress += 25;
+    if (this.exerciseDone) progress += 15;
+    if (this.tookMedication) progress += 10;
     return progress;
+  }
+
+  resetForm(): void {
+    this.painLevel = 5;
+    this.stressLevel = 5;
+    this.sleepHours = 7;
+    this.exerciseDone = false;
+    this.tookMedication = false;
+    this.exerciseTypes.forEach(exercise => (exercise.selected = false));
+    this.successMessage = '';
+    this.errorMessage = '';
   }
 }
