@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
@@ -6,11 +5,8 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 import pickle
-
-# Assuming necessary imports from the models and database
-from ..models import User, SymptomLog, Prediction
 
 class FlareUpPredictor:
     """
@@ -25,88 +21,61 @@ class FlareUpPredictor:
         """
         self.model_file_path = "backend/app/ml/flare_up_model.pkl"
 
-        # Load existing model if available; otherwise, create a new RandomForest model
         try:
             with open(self.model_file_path, 'rb') as model_file:
                 self.pipeline = pickle.load(model_file)
                 print("Model loaded successfully from file.")
         except FileNotFoundError:
             self.pipeline = Pipeline(steps=[
+                ('preprocessor', None),  # Placeholder, updated in `train_model`.
                 ('model', RandomForestClassifier(n_estimators=100, random_state=42))
             ])
             print("No pre-trained model found. Initialized a new RandomForest model.")
 
-    def preprocess_data(self, symptom_logs):
+    def preprocess_data(self, data):
         """
-        Preprocesses data for prediction.
+        Preprocesses input data for prediction.
 
         Args:
-            symptom_logs (dict): Dictionary of user symptom data.
+            data (pd.DataFrame): Symptom data to preprocess.
 
         Returns:
-            np.array: Processed feature array for the model.
+            np.array: Transformed feature array for the model.
         """
-        data = pd.DataFrame([symptom_logs])
-
-        # Define columns
         categorical_cols = ['exercise_type']
         numerical_cols = ['pain_level', 'stress_level', 'sleep_hours', 'exercise_done', 'took_medication']
 
-        # Define preprocessing steps
-        numerical_transformer = Pipeline(steps=[
-            ('imputer', SimpleImputer(strategy='mean')),
-            ('scaler', StandardScaler())
-        ])
-        categorical_transformer = Pipeline(steps=[
-            ('imputer', SimpleImputer(strategy='most_frequent')),
-            ('onehot', OneHotEncoder(handle_unknown='ignore'))
-        ])
-
-        # Combine preprocessing
         preprocessor = ColumnTransformer(
             transformers=[
-                ('num', numerical_transformer, numerical_cols),
-                ('cat', categorical_transformer, categorical_cols)
+                ('num', Pipeline([
+                    ('imputer', SimpleImputer(strategy='mean')),
+                    ('scaler', StandardScaler())
+                ]), numerical_cols),
+                ('cat', Pipeline([
+                    ('imputer', SimpleImputer(strategy='most_frequent')),
+                    ('onehot', OneHotEncoder(handle_unknown='ignore'))
+                ]), categorical_cols)
             ]
         )
 
-        processed_data = preprocessor.fit_transform(data)
-        return processed_data
+        return preprocessor.fit_transform(data), preprocessor
 
-    def train_model(self, data):
+    def train_model(self, csv_path='synthetic_data.csv'):
         """
-        Trains the model using provided data.
+        Trains the model using synthetic or real symptom data.
 
         Args:
-            data (pd.DataFrame): Symptom data with labels.
+            csv_path (str): Path to the CSV containing training data.
         """
+        data = pd.read_csv(csv_path)
         X = data[['pain_level', 'stress_level', 'sleep_hours', 'exercise_done', 'took_medication', 'exercise_type']]
         y = data['flare_up']
 
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-        # Define columns
-        categorical_cols = ['exercise_type']
-        numerical_cols = ['pain_level', 'stress_level', 'sleep_hours', 'exercise_done', 'took_medication']
+        X_train_processed, preprocessor = self.preprocess_data(X_train)
 
-        # Preprocessing pipelines
-        numerical_transformer = Pipeline(steps=[
-            ('imputer', SimpleImputer(strategy='mean')),
-            ('scaler', StandardScaler())
-        ])
-        categorical_transformer = Pipeline(steps=[
-            ('imputer', SimpleImputer(strategy='most_frequent')),
-            ('onehot', OneHotEncoder(handle_unknown='ignore'))
-        ])
-
-        # Complete pipeline
-        preprocessor = ColumnTransformer(
-            transformers=[
-                ('num', numerical_transformer, numerical_cols),
-                ('cat', categorical_transformer, categorical_cols)
-            ]
-        )
-
+        # Update pipeline with preprocessor and train model
         self.pipeline = Pipeline(steps=[
             ('preprocessor', preprocessor),
             ('model', RandomForestClassifier(n_estimators=100, random_state=42))
@@ -114,11 +83,12 @@ class FlareUpPredictor:
 
         self.pipeline.fit(X_train, y_train)
 
-        # Model evaluation
-        y_pred = self.pipeline.predict(X_test)
-        accuracy = accuracy_score(y_test, y_pred)
-        print(f"Training Accuracy: {accuracy:.2f}")
-        print(classification_report(y_test, y_pred))
+        # Evaluate model
+        X_test_processed = preprocessor.transform(X_test)
+        y_pred = self.pipeline.predict(X_test_processed)
+        print(f"Accuracy: {accuracy_score(y_test, y_pred):.2f}")
+        print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+        print("Classification Report:\n", classification_report(y_test, y_pred))
 
         # Save model
         with open(self.model_file_path, 'wb') as model_file:
@@ -135,7 +105,8 @@ class FlareUpPredictor:
         Returns:
             dict: Prediction result and probability.
         """
-        features = self.preprocess_data(symptom_logs)
+        data = pd.DataFrame([symptom_logs])
+        features = self.pipeline['preprocessor'].transform(data)
 
         prediction = self.pipeline.predict(features)
         prediction_prob = self.pipeline.predict_proba(features)[0]
@@ -162,15 +133,15 @@ class FlareUpPredictor:
         insights = []
 
         if symptom_logs.get('pain_level', 0) > 7:
-            insights.append("Pain level is high. Consult your healthcare provider.")
+            insights.append("High pain detected. Seek advice.")
 
         if symptom_logs.get('stress_level', 0) > 6:
-            insights.append("High stress detected. Consider stress management techniques.")
+            insights.append("High stress. Try relaxation techniques.")
 
         if not symptom_logs.get('took_medication', True):
-            insights.append("Missed medication may increase flare-up risk.")
+            insights.append("Missed medication detected.")
 
         if not symptom_logs.get('exercise_done', True):
-            insights.append("Regular light exercise can improve symptoms.")
+            insights.append("Exercise helps prevent flare-ups.")
 
         return " ".join(insights)

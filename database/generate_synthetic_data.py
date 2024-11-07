@@ -2,6 +2,7 @@ import sqlite3
 import random
 from datetime import datetime, timedelta
 from faker import Faker
+import pandas as pd
 
 # Initialize Faker to generate realistic random data
 fake = Faker()
@@ -45,8 +46,6 @@ def generate_users(n):
         except sqlite3.IntegrityError:
             print("Duplicate found in database. Retrying with a new username/email.")
 
-generate_users(1000)
-
 # Generate synthetic symptom logs with realistic IBD patterns
 def generate_symptom_logs(user_ids, n):
     symptom_logs = []
@@ -58,7 +57,6 @@ def generate_symptom_logs(user_ids, n):
             exercise_done = random.choice([1, 0])
             took_medication = random.choice([1, 0])
 
-            # Determine pain level based on stress, sleep, and medication adherence
             if stress_level >= 8 or sleep_hours < 5:
                 pain_level = random.randint(7, 10)  # High pain if stress is high or sleep is very low
             elif stress_level >= 5 and sleep_hours < 7:
@@ -66,84 +64,46 @@ def generate_symptom_logs(user_ids, n):
             else:
                 pain_level = random.randint(1, 5)  # Low pain if stress and sleep are good
 
-            # Encourage exercise and medication adherence to have a positive effect
             if exercise_done:
-                pain_level = max(1, pain_level - random.randint(1, 2))  # Reduce pain slightly if exercised
+                pain_level = max(1, pain_level - random.randint(1, 2))
             if took_medication:
-                pain_level = max(1, pain_level - random.randint(1, 3))  # Reduce pain more if medication taken
+                pain_level = max(1, pain_level - random.randint(1, 3))
 
-            # Set exercise type if exercise was done
             exercise_type = random.choice(['cardio', 'strength', 'yoga', 'running', None]) if exercise_done else None
 
-            # Generate log timestamps and optional notes
-            diet_notes = fake.sentence(nb_words=6)  # Random gibberish notes for now
-            additional_notes = fake.sentence(nb_words=8)  # Random gibberish notes for now
+            diet_notes = fake.sentence(nb_words=6)
+            additional_notes = fake.sentence(nb_words=8)
             logged_at = fake.date_time_this_year().strftime('%Y-%m-%d %H:%M:%S')
-            timestamp = fake.time()
 
-            symptom_logs.append((user_id, pain_level, stress_level, sleep_hours, exercise_done, exercise_type, took_medication, diet_notes, additional_notes, logged_at, timestamp))
+            symptom_logs.append({
+                "user_id": user_id,
+                "pain_level": pain_level,
+                "stress_level": stress_level,
+                "sleep_hours": sleep_hours,
+                "exercise_done": exercise_done,
+                "exercise_type": exercise_type,
+                "took_medication": took_medication,
+                "flare_up": 1 if pain_level > 7 or stress_level > 6 else 0,  # Synthetic label
+                "logged_at": logged_at
+            })
 
-    cursor.executemany("INSERT INTO symptom_logs (user_id, pain_level, stress_level, sleep_hours, exercise_done, exercise_type, took_medication, diet_notes, additional_notes, logged_at, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", symptom_logs)
-    conn.commit()
+    return symptom_logs
 
-# Generate synthetic predictions based on trends
-def generate_predictions(user_ids, n):
-    predictions = []
-    for user_id in user_ids:
-        for _ in range(n):
-            # Simulate basic prediction logic based on patterns in the data
-            prediction_result = random.choice(['Stable', 'Flare-up Likely'])
-            predicted_at = fake.date_time_this_year().strftime('%Y-%m-%d %H:%M:%S')
-            additional_info = "Based on recent logs, keep stress low and ensure adequate sleep to prevent flare-ups."
+def export_to_csv(symptom_logs):
+    df = pd.DataFrame(symptom_logs)
+    df.to_csv('synthetic_data.csv', index=False)
+    print("Synthetic data exported to synthetic_data.csv")
 
-            if prediction_result == 'Flare-up Likely':
-                additional_info = "High pain and stress detected. Rest and consider avoiding trigger foods."
-
-            predictions.append((user_id, prediction_result, predicted_at, additional_info))
-
-    cursor.executemany("INSERT INTO predictions (user_id, prediction_result, predicted_at, additional_info) VALUES (?, ?, ?, ?)", predictions)
-    conn.commit()
-
-# Generate synthetic trend analysis for insights over time
-def generate_trend_analysis(user_ids, n):
-    trends = []
-    for user_id in user_ids:
-        for _ in range(n):
-            analysis_summary = "Trends indicate that high stress and low sleep contribute to flare-ups. Exercise and medication adherence reduce symptoms."
-            generated_at = fake.date_time_this_year().strftime('%Y-%m-%d %H:%M:%S')
-            trends.append((user_id, analysis_summary, generated_at))
-
-    cursor.executemany("INSERT INTO trend_analysis (user_id, analysis_summary, generated_at) VALUES (?, ?, ?)", trends)
-    conn.commit()
-
-# Main function to generate data
 def main():
-    num_users = 1000  # Number of users
-    logs_per_user = 20  # Number of symptom logs per user
-    predictions_per_user = 5  # Number of predictions per user
-    trends_per_user = 2  # Number of trend analyses per user
+    num_users = 1000
+    logs_per_user = 20
 
-    # Generate users and retrieve their IDs
     generate_users(num_users)
     cursor.execute("SELECT id FROM users")
     user_ids = [row[0] for row in cursor.fetchall()]
 
-    # Debugging: Print counts
-    cursor.execute("SELECT COUNT(*) FROM users")
-    print("Number of users in database:", cursor.fetchone()[0])
-
-    # Generate data for each table based on user IDs
-    generate_symptom_logs(user_ids, logs_per_user)
-    cursor.execute("SELECT COUNT(*) FROM symptom_logs")
-    print("Number of symptom logs in database:", cursor.fetchone()[0])
-
-    generate_predictions(user_ids, predictions_per_user)
-    cursor.execute("SELECT COUNT(*) FROM predictions")
-    print("Number of predictions in database:", cursor.fetchone()[0])
-
-    generate_trend_analysis(user_ids, trends_per_user)
-    cursor.execute("SELECT COUNT(*) FROM trend_analysis")
-    print("Number of trend analyses in database:", cursor.fetchone()[0])
+    symptom_logs = generate_symptom_logs(user_ids, logs_per_user)
+    export_to_csv(symptom_logs)
 
     print("Data generation complete!")
 
