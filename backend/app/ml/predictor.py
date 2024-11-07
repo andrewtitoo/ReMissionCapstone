@@ -25,23 +25,17 @@ class FlareUpPredictor:
         try:
             with open(self.model_file_path, 'rb') as model_file:
                 self.pipeline = pickle.load(model_file)
-                print("Model loaded successfully from file.")
+                print("[DEBUG] Model loaded successfully from file.")
         except FileNotFoundError:
+            print("[DEBUG] No pre-trained model found. Initializing a new model.")
             self.pipeline = Pipeline(steps=[
                 ('preprocessor', None),  # Placeholder, updated in `train_model`.
                 ('model', RandomForestClassifier(n_estimators=100, random_state=42))
             ])
-            print("No pre-trained model found. Initialized a new RandomForest model.")
 
     def preprocess_data(self, data):
         """
         Preprocesses input data for prediction.
-
-        Args:
-            data (pd.DataFrame): Symptom data to preprocess.
-
-        Returns:
-            np.array: Transformed feature array for the model.
         """
         categorical_cols = ['exercise_type']
         numerical_cols = ['pain_level', 'stress_level', 'sleep_hours', 'exercise_done', 'took_medication']
@@ -59,72 +53,73 @@ class FlareUpPredictor:
             ]
         )
 
-        return preprocessor.fit_transform(data), preprocessor
+        transformed_data = preprocessor.fit_transform(data)
+        print(f"[DEBUG] Transformed data shape after preprocessing: {transformed_data.shape}")
+
+        return transformed_data, preprocessor
 
     def train_model(self, csv_path):
         """
         Trains the model using synthetic or real symptom data.
-
-        Args:
-            csv_path (str): Path to the CSV containing training data.
         """
         csv_path = os.path.abspath(csv_path)
-        print(f"Resolved CSV path: {csv_path}")
+        print(f"[DEBUG] Resolved CSV path: {csv_path}")
 
+        # Check CSV file existence
         if not os.path.exists(csv_path):
-            raise FileNotFoundError(f"CSV file not found at: {csv_path}")
+            raise FileNotFoundError(f"[ERROR] CSV file not found at: {csv_path}")
 
-        print(f"Training with data from: {csv_path}")
-
-        # Check if pandas can read the file
+        # Read and verify the CSV data
         try:
             data = pd.read_csv(csv_path)
+            print(f"[DEBUG] CSV loaded successfully with {data.shape[0]} rows and {data.shape[1]} columns.")
         except Exception as e:
-            raise RuntimeError(f"Failed to read the CSV file: {e}")
+            raise RuntimeError(f"[ERROR] Failed to read CSV: {e}")
 
+        # Prepare features and target variable
         X = data[['pain_level', 'stress_level', 'sleep_hours', 'exercise_done', 'took_medication', 'exercise_type']]
         y = data['flare_up']
+        print("[DEBUG] Data columns and target extracted successfully.")
 
+        # Split into training and testing sets
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        print("[DEBUG] Split data into training and testing sets.")
 
+        # Preprocess the training data
         X_train_processed, preprocessor = self.preprocess_data(X_train)
+        print("[DEBUG] X_train_processed shape:", X_train_processed.shape)
 
+        # Update pipeline and train model
         self.pipeline = Pipeline(steps=[
             ('preprocessor', preprocessor),
             ('model', RandomForestClassifier(n_estimators=100, random_state=42))
         ])
+        self.pipeline.fit(X_train_processed, y_train)
+        print("[DEBUG] Model trained successfully.")
 
-        self.pipeline.fit(X_train, y_train)
-
-        # Model Evaluation
+        # Preprocess the test data
         X_test_processed = preprocessor.transform(X_test)
+        print("[DEBUG] X_test_processed shape:", X_test_processed.shape)
+
+        # Evaluate the model on test data
         y_pred = self.pipeline.predict(X_test_processed)
         print(f"Accuracy: {accuracy_score(y_test, y_pred):.2f}")
         print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
         print("Classification Report:\n", classification_report(y_test, y_pred))
 
-        # Save model
+        # Save trained model
         with open(self.model_file_path, 'wb') as model_file:
             pickle.dump(self.pipeline, model_file)
-            print("Model saved successfully.")
+            print("[DEBUG] Model saved successfully.")
 
     def predict_flare_up(self, symptom_logs, user_logs, username='User'):
         """
         Predicts likelihood of a flare-up and provides personalized insights based on trends.
-
-        Args:
-            symptom_logs (dict): Current user symptom data.
-            user_logs (pd.DataFrame): Historical logs of the user's symptoms.
-            username (str): The user's name for personalized messaging.
-
-        Returns:
-            dict: Insights and guidance based on user data.
         """
         data = pd.DataFrame([symptom_logs])
         features = self.pipeline['preprocessor'].transform(data)
 
         prediction = self.pipeline.predict(features)
-
         suggestion = self.generate_insights(user_logs)
 
         return {
@@ -136,12 +131,6 @@ class FlareUpPredictor:
     def generate_insights(self, user_logs):
         """
         Generates insights based on historical symptom data.
-
-        Args:
-            user_logs (pd.DataFrame): Historical symptom logs of the user.
-
-        Returns:
-            str: Suggestions based on detected patterns.
         """
         insights = []
         recent_logs = user_logs.tail(5)
@@ -168,9 +157,5 @@ class FlareUpPredictor:
 
 if __name__ == "__main__":
     predictor = FlareUpPredictor()
-
-    # Use the correct absolute path for CSV
     csv_path = r"D:\ReMission\database\synthetic_data.csv"
-
-    print(f"Training with data from: {csv_path}")
     predictor.train_model(csv_path=csv_path)
