@@ -1,6 +1,6 @@
 import sqlite3
 import random
-from datetime import datetime, timedelta
+from datetime import datetime
 from faker import Faker
 import pandas as pd
 
@@ -46,36 +46,31 @@ def generate_users(n):
         except sqlite3.IntegrityError:
             print("Duplicate found in database. Retrying with a new username/email.")
 
-# Generate synthetic symptom logs with realistic IBD patterns
+# Generate synthetic symptom logs with realistic IBD patterns and flare logic
 def generate_symptom_logs(user_ids, n):
     symptom_logs = []
     for user_id in user_ids:
         for _ in range(n):
-            # Determine pain level based on IBD-related factors
             stress_level = random.randint(1, 10)
             sleep_hours = round(random.uniform(4.0, 9.0), 1)
             exercise_done = random.choice([1, 0])
             took_medication = random.choice([1, 0])
+            pain_level = random.randint(1, 10)
 
-            if stress_level >= 8 or sleep_hours < 5:
-                pain_level = random.randint(7, 10)  # High pain if stress is high or sleep is very low
-            elif stress_level >= 5 and sleep_hours < 7:
-                pain_level = random.randint(4, 8)  # Moderate pain for moderate stress and low sleep
-            else:
-                pain_level = random.randint(1, 5)  # Low pain if stress and sleep are good
-
-            if exercise_done:
-                pain_level = max(1, pain_level - random.randint(1, 2))
-            if took_medication:
-                pain_level = max(1, pain_level - random.randint(1, 3))
+            # Define logic for determining flare-up
+            flare = 0
+            if pain_level >= 7:
+                flare = 1
+            elif 5 <= pain_level < 7 and (
+                    sleep_hours < 7 or took_medication == 0 or stress_level > 5):
+                flare = 1
+            elif 2 <= pain_level < 5 and (
+                    sum([sleep_hours < 7, took_medication == 0, exercise_done == 0, stress_level > 6]) >= 3):
+                flare = 1
 
             exercise_type = random.choice(['cardio', 'strength', 'yoga', 'running', None]) if exercise_done else None
 
-            diet_notes = fake.sentence(nb_words=6)
-            additional_notes = fake.sentence(nb_words=8)
-            logged_at = fake.date_time_this_year().strftime('%Y-%m-%d %H:%M:%S')
-
-            symptom_logs.append({
+            log_entry = {
                 "user_id": user_id,
                 "pain_level": pain_level,
                 "stress_level": stress_level,
@@ -83,9 +78,11 @@ def generate_symptom_logs(user_ids, n):
                 "exercise_done": exercise_done,
                 "exercise_type": exercise_type,
                 "took_medication": took_medication,
-                "flare_up": 1 if pain_level > 7 or stress_level > 6 else 0,  # Synthetic label
-                "logged_at": logged_at
-            })
+                "flare_up": flare,  # Binary label
+                "logged_at": fake.date_time_this_year().strftime('%Y-%m-%d %H:%M:%S')
+            }
+
+            symptom_logs.append(log_entry)
 
     return symptom_logs
 

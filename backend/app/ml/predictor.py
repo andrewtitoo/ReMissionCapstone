@@ -7,6 +7,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 import pickle
+import os
 
 class FlareUpPredictor:
     """
@@ -19,7 +20,7 @@ class FlareUpPredictor:
         Initializes the FlareUpPredictor class.
         Loads a pre-trained model if available; otherwise, initializes a new RandomForest model.
         """
-        self.model_file_path = "backend/app/ml/flare_up_model.pkl"
+        self.model_file_path = os.path.join(os.path.dirname(__file__), "flare_up_model.pkl")
 
         try:
             with open(self.model_file_path, 'rb') as model_file:
@@ -60,40 +61,52 @@ class FlareUpPredictor:
 
         return preprocessor.fit_transform(data), preprocessor
 
-    def train_model(self, csv_path='synthetic_data.csv'):
-        """
-        Trains the model using synthetic or real symptom data.
+def train_model(self, csv_path):
+    """
+    Trains the model using synthetic or real symptom data.
 
-        Args:
-            csv_path (str): Path to the CSV containing training data.
-        """
+    Args:
+        csv_path (str): Path to the CSV containing training data.
+    """
+    csv_path = os.path.abspath(csv_path)
+    print(f"Resolved CSV path: {csv_path}")
+
+    if not os.path.exists(csv_path):
+        raise FileNotFoundError(f"CSV file not found at: {csv_path}")
+
+    print(f"Training with data from: {csv_path}")
+
+    # Check if pandas can read the file
+    try:
         data = pd.read_csv(csv_path)
-        X = data[['pain_level', 'stress_level', 'sleep_hours', 'exercise_done', 'took_medication', 'exercise_type']]
-        y = data['flare_up']
+    except Exception as e:
+        raise RuntimeError(f"Failed to read the CSV file: {e}")
 
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    # Proceed with training
+    X = data[['pain_level', 'stress_level', 'sleep_hours', 'exercise_done', 'took_medication', 'exercise_type']]
+    y = data['flare_up']
 
-        X_train_processed, preprocessor = self.preprocess_data(X_train)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-        # Update pipeline with preprocessor and train model
-        self.pipeline = Pipeline(steps=[
-            ('preprocessor', preprocessor),
-            ('model', RandomForestClassifier(n_estimators=100, random_state=42))
-        ])
+    X_train_processed, preprocessor = self.preprocess_data(X_train)
 
-        self.pipeline.fit(X_train, y_train)
+    self.pipeline = Pipeline(steps=[
+        ('preprocessor', preprocessor),
+        ('model', RandomForestClassifier(n_estimators=100, random_state=42))
+    ])
 
-        # Evaluate model
-        X_test_processed = preprocessor.transform(X_test)
-        y_pred = self.pipeline.predict(X_test_processed)
-        print(f"Accuracy: {accuracy_score(y_test, y_pred):.2f}")
-        print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
-        print("Classification Report:\n", classification_report(y_test, y_pred))
+    self.pipeline.fit(X_train, y_train)
 
-        # Save model
-        with open(self.model_file_path, 'wb') as model_file:
-            pickle.dump(self.pipeline, model_file)
-            print("Model saved.")
+    X_test_processed = preprocessor.transform(X_test)
+    y_pred = self.pipeline.predict(X_test_processed)
+    print(f"Accuracy: {accuracy_score(y_test, y_pred):.2f}")
+    print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+    print("Classification Report:\n", classification_report(y_test, y_pred))
+
+    with open(self.model_file_path, 'wb') as model_file:
+        pickle.dump(self.pipeline, model_file)
+        print("Model saved.")
+
 
     def predict_flare_up(self, symptom_logs, user_logs, username='User'):
         """
@@ -131,30 +144,33 @@ class FlareUpPredictor:
             str: Suggestions based on detected patterns.
         """
         insights = []
-        recent_logs = user_logs.tail(5)  # Analyze the last 5 entries for trends
+        recent_logs = user_logs.tail(5)
 
-        # Check for consistent low sleep
+        if recent_logs.empty:
+            return "Not enough historical data to provide detailed insights. Keep logging!"
+
         if (recent_logs['sleep_hours'] < 6).sum() >= 3:
-            insights.append("Consistently low sleep detected. Prioritize rest to help manage symptoms.")
+            insights.append("Consistently low sleep detected. Prioritize rest.")
 
-        # Check for skipped medication
         if (recent_logs['took_medication'] == 0).sum() >= 3:
-            insights.append("You’ve missed medication multiple times recently. This may increase flare-up risks.")
+            insights.append("You’ve missed medication multiple times. This may increase risks.")
 
-        # Check for high stress
         if (recent_logs['stress_level'] > 6).sum() >= 3:
-            insights.append("High stress levels noted over several days. Consider stress management techniques.")
+            insights.append("High stress levels detected. Consider stress management.")
 
-        # Low exercise frequency
         if (recent_logs['exercise_done'] == 0).sum() >= 3:
-            insights.append("Lack of regular exercise detected. Regular movement may reduce symptom severity.")
+            insights.append("Lack of regular exercise detected.")
 
-        # Default message if no significant trend detected
         if not insights:
-            insights.append("Your logs look stable! Keep maintaining good habits for symptom management.")
+            insights.append("Your logs look stable! Keep maintaining good habits.")
 
         return " ".join(insights)
 
 if __name__ == "__main__":
     predictor = FlareUpPredictor()
-    predictor.train_model(csv_path="D:\ReMission\database\synthetic_data.csv")
+
+    # Use the correct absolute path for CSV
+    csv_path = r"D:\ReMission\database\synthetic_data.csv"
+
+    print(f"Training with data from: {csv_path}")
+    predictor.train_model(csv_path=csv_path)
