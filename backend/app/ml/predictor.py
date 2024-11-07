@@ -95,53 +95,66 @@ class FlareUpPredictor:
             pickle.dump(self.pipeline, model_file)
             print("Model saved.")
 
-    def predict_flare_up(self, symptom_logs):
+    def predict_flare_up(self, symptom_logs, user_logs, username='User'):
         """
-        Predicts likelihood of a flare-up.
+        Predicts likelihood of a flare-up and provides personalized insights based on trends.
 
         Args:
-            symptom_logs (dict): User symptom data.
+            symptom_logs (dict): Current user symptom data.
+            user_logs (pd.DataFrame): Historical logs of the user's symptoms.
+            username (str): The user's name for personalized messaging.
 
         Returns:
-            dict: Prediction result and probability.
+            dict: Insights and guidance based on user data.
         """
         data = pd.DataFrame([symptom_logs])
         features = self.pipeline['preprocessor'].transform(data)
 
         prediction = self.pipeline.predict(features)
-        prediction_prob = self.pipeline.predict_proba(features)[0]
 
-        suggestion = self.generate_insights(symptom_logs, prediction)
+        suggestion = self.generate_insights(user_logs)
 
         return {
+            'greeting': f"Hello, {username}! Here's what I found based on your recent logs.",
             'flare_up': bool(prediction[0]),
-            'probability': float(prediction_prob[1]),
             'suggestion': suggestion
         }
 
-    def generate_insights(self, symptom_logs, prediction):
+    def generate_insights(self, user_logs):
         """
-        Generates insights based on prediction results.
+        Generates insights based on historical symptom data.
 
         Args:
-            symptom_logs (dict): User symptom data.
-            prediction (array): Model prediction.
+            user_logs (pd.DataFrame): Historical symptom logs of the user.
 
         Returns:
-            str: User suggestions.
+            str: Suggestions based on detected patterns.
         """
         insights = []
+        recent_logs = user_logs.tail(5)  # Analyze the last 5 entries for trends
 
-        if symptom_logs.get('pain_level', 0) > 7:
-            insights.append("High pain detected. Seek advice.")
+        # Check for consistent low sleep
+        if (recent_logs['sleep_hours'] < 6).sum() >= 3:
+            insights.append("Consistently low sleep detected. Prioritize rest to help manage symptoms.")
 
-        if symptom_logs.get('stress_level', 0) > 6:
-            insights.append("High stress. Try relaxation techniques.")
+        # Check for skipped medication
+        if (recent_logs['took_medication'] == 0).sum() >= 3:
+            insights.append("You’ve missed medication multiple times recently. This may increase flare-up risks.")
 
-        if not symptom_logs.get('took_medication', True):
-            insights.append("Missed medication detected.")
+        # Check for high stress
+        if (recent_logs['stress_level'] > 6).sum() >= 3:
+            insights.append("High stress levels noted over several days. Consider stress management techniques.")
 
-        if not symptom_logs.get('exercise_done', True):
-            insights.append("Exercise helps prevent flare-ups.")
+        # Low exercise frequency
+        if (recent_logs['exercise_done'] == 0).sum() >= 3:
+            insights.append("Lack of regular exercise detected. Regular movement may reduce symptom severity.")
+
+        # Default message if no significant trend detected
+        if not insights:
+            insights.append("Your logs look stable! Keep maintaining good habits for symptom management.")
 
         return " ".join(insights)
+
+if __name__ == "__main__":
+    predictor = FlareUpPredictor()
+    predictor.train_model(csv_path="D:\ReMission\database\synthetic_data.csv")
