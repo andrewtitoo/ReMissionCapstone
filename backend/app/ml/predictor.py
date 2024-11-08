@@ -28,10 +28,7 @@ class FlareUpPredictor:
                 print("[DEBUG] Model loaded successfully from file.")
         except FileNotFoundError:
             print("[DEBUG] No pre-trained model found. Initializing a new model.")
-            self.pipeline = Pipeline(steps=[
-                ('preprocessor', None),  # Placeholder, updated in `train_model`.
-                ('model', RandomForestClassifier(n_estimators=100, random_state=42))
-            ])
+            self.pipeline = None  # Will be set during `train_model`.
 
     def preprocess_data(self, data):
         """
@@ -53,10 +50,7 @@ class FlareUpPredictor:
             ]
         )
 
-        transformed_data = preprocessor.fit_transform(data)
-        print(f"[DEBUG] Transformed data shape after preprocessing: {transformed_data.shape}")
-
-        return transformed_data, preprocessor
+        return preprocessor
 
     def train_model(self, csv_path):
         """
@@ -65,44 +59,36 @@ class FlareUpPredictor:
         csv_path = os.path.abspath(csv_path)
         print(f"[DEBUG] Resolved CSV path: {csv_path}")
 
-        # Check CSV file existence
         if not os.path.exists(csv_path):
             raise FileNotFoundError(f"[ERROR] CSV file not found at: {csv_path}")
 
-        # Read and verify the CSV data
         try:
             data = pd.read_csv(csv_path)
             print(f"[DEBUG] CSV loaded successfully with {data.shape[0]} rows and {data.shape[1]} columns.")
         except Exception as e:
             raise RuntimeError(f"[ERROR] Failed to read CSV: {e}")
 
-        # Prepare features and target variable
+        # Features and target
         X = data[['pain_level', 'stress_level', 'sleep_hours', 'exercise_done', 'took_medication', 'exercise_type']]
         y = data['flare_up']
         print("[DEBUG] Data columns and target extracted successfully.")
 
-        # Split into training and testing sets
+        # Train/test split
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         print("[DEBUG] Split data into training and testing sets.")
 
-        # Preprocess the training data
-        X_train_processed, preprocessor = self.preprocess_data(X_train)
-        print("[DEBUG] X_train_processed shape:", X_train_processed.shape)
-
-        # Update pipeline and train model
+        # Preprocess data
+        preprocessor = self.preprocess_data(X_train)
         self.pipeline = Pipeline(steps=[
             ('preprocessor', preprocessor),
             ('model', RandomForestClassifier(n_estimators=100, random_state=42))
         ])
-        self.pipeline.fit(X_train_processed, y_train)
+
+        self.pipeline.fit(X_train, y_train)
         print("[DEBUG] Model trained successfully.")
 
-        # Preprocess the test data
-        X_test_processed = preprocessor.transform(X_test)
-        print("[DEBUG] X_test_processed shape:", X_test_processed.shape)
-
-        # Evaluate the model on test data
-        y_pred = self.pipeline.predict(X_test_processed)
+        # Test model
+        y_pred = self.pipeline.predict(X_test)
         print(f"Accuracy: {accuracy_score(y_test, y_pred):.2f}")
         print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
         print("Classification Report:\n", classification_report(y_test, y_pred))
@@ -118,8 +104,8 @@ class FlareUpPredictor:
         """
         data = pd.DataFrame([symptom_logs])
         features = self.pipeline['preprocessor'].transform(data)
-
         prediction = self.pipeline.predict(features)
+
         suggestion = self.generate_insights(user_logs)
 
         return {
