@@ -3,13 +3,12 @@ import { ApiService } from '../../services/api.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
-
 @Component({
   selector: 'app-logger',
   templateUrl: './logger.component.html',
   standalone: true,
   styleUrls: ['./logger.component.css'],
-  imports: [FormsModule]
+  imports: [FormsModule, CommonModule] // Added CommonModule for directives like *ngIf, *ngFor
 })
 export class LoggerComponent {
   painLevel: number = 5;

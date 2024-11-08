@@ -17,14 +17,15 @@ interface SymptomLog {
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
   standalone: true,
-  styleUrls: ['./dashboard.component.css']
+  styleUrls: ['./dashboard.component.css'],
+  imports: [CommonModule] // Ensure CommonModule is included for *ngIf, *ngFor, etc.
 })
 export class DashboardComponent implements OnInit {
   loading = true;
   errorMessage: string | null = null;
 
   constructor(private apiService: ApiService) {
-    Chart.register(...registerables);
+    Chart.register(...registerables); // Register chart.js components
   }
 
   ngOnInit(): void {
@@ -34,9 +35,13 @@ export class DashboardComponent implements OnInit {
   fetchAndDisplayCharts(): void {
     this.apiService.getSymptomLogs().subscribe(
       (data: SymptomLog[]) => {
-        this.createSymptomTrendChart(data);
-        this.createFlareDistributionChart(data);
-        this.createSymptomBreakdownChart(data);
+        if (data.length > 0) {
+          this.createSymptomTrendChart(data);
+          this.createFlareDistributionChart(data);
+          this.createSymptomBreakdownChart(data);
+        } else {
+          this.errorMessage = 'No data available to display.';
+        }
         this.loading = false;
       },
       (error: any) => {
@@ -52,7 +57,7 @@ export class DashboardComponent implements OnInit {
     const painLevels = data.map(entry => entry.pain_level);
     const stressLevels = data.map(entry => entry.stress_level);
 
-    new Chart("symptomTrendChart", {
+    new Chart('symptomTrendChart', {
       type: 'line',
       data: {
         labels,
@@ -87,14 +92,16 @@ export class DashboardComponent implements OnInit {
       data.filter(entry => entry.flare_up === 0).length
     ];
 
-    new Chart("flareDistributionChart", {
+    new Chart('flareDistributionChart', {
       type: 'pie',
       data: {
         labels: ['Flare-Ups', 'No Flare-Ups'],
-        datasets: [{
-          data: flareCounts,
-          backgroundColor: ['#ff6384', '#36a2eb']
-        }]
+        datasets: [
+          {
+            data: flareCounts,
+            backgroundColor: ['#ff6384', '#36a2eb']
+          }
+        ]
       },
       options: {
         responsive: true,
@@ -108,18 +115,20 @@ export class DashboardComponent implements OnInit {
 
   createSymptomBreakdownChart(data: SymptomLog[]): void {
     const avgSleep = data.reduce((sum, log) => sum + log.sleep_hours, 0) / data.length;
-    const avgExercise = data.filter(log => log.exercise_done).length / data.length * 100;
-    const avgMedication = data.filter(log => log.took_medication).length / data.length * 100;
+    const avgExercise = (data.filter(log => log.exercise_done).length / data.length) * 100;
+    const avgMedication = (data.filter(log => log.took_medication).length / data.length) * 100;
 
-    new Chart("symptomBreakdownChart", {
+    new Chart('symptomBreakdownChart', {
       type: 'bar',
       data: {
         labels: ['Avg Sleep Hours', 'Exercise Done (%)', 'Medication Taken (%)'],
-        datasets: [{
-          label: 'Symptom Averages',
-          data: [avgSleep, avgExercise, avgMedication],
-          backgroundColor: ['#ffcd56', '#4bc0c0', '#ff9f40'],
-        }]
+        datasets: [
+          {
+            label: 'Symptom Averages',
+            data: [avgSleep, avgExercise, avgMedication],
+            backgroundColor: ['#ffcd56', '#4bc0c0', '#ff9f40']
+          }
+        ]
       },
       options: {
         responsive: true,

@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../services/api.service';
-import { CommonModule } from '@angular/common';
-import { NgClass } from '@angular/common';  // Corrected import
+import { CommonModule, NgClass } from '@angular/common'; // Combined imports
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -9,7 +8,7 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './bot.component.html',
   standalone: true,
   styleUrls: ['./bot.component.css'],
-  imports: [NgClass, FormsModule]
+  imports: [CommonModule, NgClass, FormsModule] // Ensure CommonModule is included
 })
 export class BotComponent implements OnInit {
   messages: string[] = [];
