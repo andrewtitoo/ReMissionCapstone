@@ -1,5 +1,5 @@
 <div class="dashboard-container">
-  <h1>Welcome to Your Symptom Dashboard</h1>
+  <h1>Your Symptom Dashboard</h1>
 
   <!-- Loading Spinner or Error Message -->
   <div *ngIf="loading" class="loading">Loading data...</div>
@@ -7,17 +7,23 @@
 
   <!-- Charts Container -->
   <div class="charts-container" *ngIf="!loading && !errorMessage">
+    <!-- Symptom Trend Over Time (Line Chart) -->
     <div class="chart">
-      <h3>Symptom Trend Over Time</h3>
+      <h3>Symptom Trends Over Time</h3>
       <canvas id="symptomTrendChart"></canvas>
     </div>
+
+    <!-- Flare-Up Distribution (Pie Chart) -->
     <div class="chart">
-      <h3>Average Stress Levels</h3>
-      <canvas id="stressLevelChart"></canvas>
+      <h3>Flare-Up Distribution</h3>
+      <canvas id="flareDistributionChart"></canvas>
     </div>
+
+    <!-- Symptom Breakdown by Category (Bar Chart) -->
     <div class="chart">
-      <h3>Pain Levels vs Exercise</h3>
-      <canvas id="painExerciseChart"></canvas>
+      <h3>Symptom Breakdown by Category</h3>
+      <canvas id="symptomBreakdownChart"></canvas>
     </div>
   </div>
 </div>
+
