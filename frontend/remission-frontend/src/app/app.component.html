@@ -2,26 +2,29 @@
   <!-- Navigation -->
   <app-navbar></app-navbar>
 
-  <!-- Main Content -->
-  <div class="welcome-container text-center p-3">
+  <!-- User ID Input Section -->
+  <div *ngIf="!userId" class="user-id-input text-center p-3">
+    <h2>Enter Your User ID</h2>
+    <input
+      type="text"
+      [(ngModel)]="userIdInput"
+      placeholder="Enter your User ID"
+      class="form-control"
+    />
+    <button (click)="confirmUserId()" class="btn btn-primary mt-3">Confirm</button>
+    <p *ngIf="userIdError" class="error-message text-danger">{{ userIdError }}</p>
+  </div>
+
+  <!-- Welcome Section -->
+  <div *ngIf="userId" class="welcome-container text-center p-3">
     <h1>Welcome to ReMission</h1>
     <p>Your trusted companion in managing IBD.</p>
     <p>
-      We’re here to help you track your journey and make sense of your data. Log your daily symptoms, explore trends on your personalized dashboard, and gain valuable insights with CHIIP.
+      Log your daily symptoms, explore trends on your personalized dashboard, and gain valuable insights with CHIIP.
     </p>
-
-    <!-- User ID Prompt -->
-    <div *ngIf="!userId">
-      <label for="userIdInput">Enter Your User ID:</label>
-      <input id="userIdInput" [(ngModel)]="userIdInput" placeholder="User ID" />
-      <button (click)="confirmUserId()">Confirm</button>
-      <p *ngIf="userIdError" class="error-message">{{ userIdError }}</p>
-    </div>
-
-    <p *ngIf="userId"><strong>Your User ID:</strong> {{ userId }}</p>
+    <p><strong>Your User ID:</strong> {{ userId }}</p>
   </div>
 
   <!-- Route Rendering -->
   <router-outlet></router-outlet>
 </main>
-
