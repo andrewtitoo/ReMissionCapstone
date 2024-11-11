@@ -139,6 +139,7 @@ def predict_flare():
     except Exception as e:
         return jsonify({"error": "Database error: Unable to generate prediction"}), 500
 
+
 # --------------------- Bot Analysis ---------------------------
 
 @bp.route('/bot-analysis', methods=['POST'])
@@ -176,20 +177,19 @@ def bot_analysis():
         # Generate insights
         insights = []
         if flare:
-            insights.append("⚠️ *Your recent symptoms suggest a potential flare-up.* It's essential to focus on your well-being during this time.")
+            insights.append("Your recent symptom logs indicate a potential flare-up. Please take care of yourself.")
             if latest_log.pain_level > 5:
-                insights.append(f"🩺 *Pain Level*: {latest_log.pain_level}. High pain levels can be challenging. Remember, managing pain is crucial. Consider gentle activities that help ease discomfort, and reach out to your healthcare provider if needed.")
+                insights.append(f"Pain Level: {latest_log.pain_level}. High pain can be challenging. If it persists, consider discussing it with your healthcare provider.")
             if latest_log.stress_level > 6:
-                insights.append(f"🌪️ *Stress Level*: {latest_log.stress_level}. High stress can impact your health. Try relaxation techniques like deep breathing, meditation, or listening to calming music.")
+                insights.append(f"Stress Level: {latest_log.stress_level}. High stress affects your overall well-being. Try relaxation techniques like meditation.")
             if latest_log.sleep_hours < 7:
-                insights.append(f"🌙 *Sleep*: You reported {latest_log.sleep_hours} hours of sleep. Rest is a cornerstone of recovery. Aim for 7-9 hours if possible. Establishing a bedtime routine might help improve your sleep quality.")
+                insights.append(f"Sleep: {latest_log.sleep_hours} hours. Rest is essential. Aim for 7-9 hours.")
             if not latest_log.exercise_done:
-                insights.append("🏃 *Exercise*: No exercise logged. Even light activity, such as a short walk or gentle yoga, can boost your mood and support your overall health.")
+                insights.append("Exercise: You didn’t log exercise. Light activities can help boost your energy.")
             if not latest_log.took_medication:
-                insights.append("💊 *Medication*: You indicated missing your medication. Sticking to your prescribed treatment plan is key to managing your symptoms effectively. If you have concerns, don’t hesitate to discuss them with your healthcare provider.")
+                insights.append("Medication: Please ensure you’re following your medication plan.")
         else:
-            insights.append("🎉 *Great news!* Based on your recent inputs, it seems like you're in remission! 🌟")
-            insights.append("Keep maintaining those healthy habits that support your well-being. Remember, every small effort contributes to your journey. You're doing an amazing job!")
+            insights.append("Fantastic! You seem to be in remission. Keep up your healthy habits!")
 
         return jsonify({
             "classification": "flare" if flare else "remission",
