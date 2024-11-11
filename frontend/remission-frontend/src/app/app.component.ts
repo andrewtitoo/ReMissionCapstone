@@ -2,13 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common'; // Import CommonModule
+import { CommonModule } from '@angular/common';
 import { ApiService } from './services/api.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, NavbarComponent, FormsModule, CommonModule], // Include CommonModule here
+  imports: [RouterOutlet, NavbarComponent, FormsModule, CommonModule],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
@@ -28,6 +28,19 @@ export class AppComponent implements OnInit {
     this.userId = null;
   }
 
+  generateNewUserId(): void {
+    this.apiService.createUser().subscribe(
+      (response: any) => {
+        this.userIdInput = response.user_id.toString();
+        alert(`New User ID Generated: ${this.userIdInput}. Please save it!`);
+      },
+      (error: any) => {
+        this.userIdError = 'Failed to generate User ID. Try again later.';
+        console.error('Error creating User ID:', error);
+      }
+    );
+  }
+
   confirmUserId(): void {
     if (this.userIdInput) {
       const inputId = parseInt(this.userIdInput, 10);
@@ -42,7 +55,7 @@ export class AppComponent implements OnInit {
         }
       );
     } else {
-      this.userIdError = 'Please enter a valid User ID.';
+      this.userIdError = 'Please enter or generate a valid User ID.';
     }
   }
 }
