@@ -11,22 +11,25 @@ import { NavbarComponent } from './components/navbar/navbar.component';
 })
 export class AppComponent implements OnInit {
   title = 'ReMission - Your IBD Management Companion';
+  userId: number | null = null;
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.initializeUserId();
   }
 
-  initializeUserId() {
-    if (!localStorage.getItem('user_id')) {
-      const userId = this.generateRandomUserId();
-      localStorage.setItem('user_id', userId.toString());
-      console.log(`New User ID Generated: ${userId}`);
+  initializeUserId(): void {
+    const storedUserId = localStorage.getItem('user_id');
+    if (!storedUserId) {
+      this.userId = this.generateRandomUserId();
+      localStorage.setItem('user_id', this.userId.toString());
+      console.log(`New User ID Generated: ${this.userId}`);
     } else {
-      console.log(`Existing User ID: ${localStorage.getItem('user_id')}`);
+      this.userId = parseInt(storedUserId, 10);
+      console.log(`Existing User ID: ${this.userId}`);
     }
   }
 
   generateRandomUserId(): number {
-    return Math.floor(Math.random() * 100000);
+    return Math.floor(10000 + Math.random() * 90000); // 5-digit unique ID
   }
 }
