@@ -30,7 +30,18 @@ export class DashboardComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const userId = parseInt(localStorage.getItem('user_id') || '1', 10); // Fetch user ID from local storage
+    this.initializeAndFetchData();
+  }
+
+  initializeAndFetchData(): void {
+    const storedUserId = localStorage.getItem('user_id');
+    if (!storedUserId) {
+      this.errorMessage = 'User ID not found. Please refresh the app.';
+      this.loading = false;
+      return;
+    }
+
+    const userId = parseInt(storedUserId, 10);
     this.fetchAndDisplayCharts(userId);
   }
 
