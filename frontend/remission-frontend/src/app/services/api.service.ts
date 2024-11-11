@@ -39,6 +39,18 @@ export class ApiService {
   }
 
   /**
+   * Validates a user ID to ensure it exists in the system.
+   * @param userId The ID of the user to validate
+   * @returns Observable for validation response
+   */
+  validateUserId(userId: number): Observable<any> {
+    const url = `${this.baseUrl}/validate-user/${userId}`;
+    return this.http.get(url, { headers: this.headers }).pipe(
+      catchError(this.handleError('validating user ID'))
+    );
+  }
+
+  /**
    * Fetches trend analysis insights from CHIIP.
    * @param userId The ID of the user to analyze logs for
    * @returns Observable for bot analysis response

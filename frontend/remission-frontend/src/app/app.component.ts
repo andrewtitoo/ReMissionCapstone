@@ -1,11 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './components/navbar/navbar.component';
+import { FormsModule } from '@angular/forms'; // For two-way binding
+import { ApiService } from './services/api.service'; // Import your ApiService for backend interaction
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, NavbarComponent],
+  imports: [RouterOutlet, NavbarComponent, FormsModule],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
@@ -13,52 +15,41 @@ export class AppComponent implements OnInit {
   title = 'ReMission - Your IBD Management Companion';
   userId: number | null = null;
   userIdInput: string = ''; // Store user input temporarily
+  userIdError: string = ''; // Error message if user input fails validation
+
+  constructor(private apiService: ApiService) {} // Inject ApiService
 
   ngOnInit(): void {
+    // Prompt user for ID on load
     this.promptForUserId();
   }
 
   /**
-   * Prompts the user to enter their User ID or creates a new one.
+   * Prompts the user to enter their User ID.
    */
   promptForUserId(): void {
-    const storedUserId = this.getUserIdFromLocalStorage();
-    if (storedUserId) {
-      this.userId = storedUserId;
-      console.log(`Welcome back! Your User ID is: ${this.userId}`);
-    } else {
-      // User needs to input their User ID manually
-      alert('Please enter your User ID or create a new one.');
-    }
+    this.userId = null; // Ensure no userId is set on initial load
   }
 
   /**
-   * Confirms and stores the entered User ID.
+   * Validates the entered User ID by checking against the backend.
    */
   confirmUserId(): void {
     if (this.userIdInput) {
-      this.userId = parseInt(this.userIdInput, 10);
-      this.storeUserIdInLocalStorage(this.userId);
-      console.log(`User ID confirmed: ${this.userId}`);
+      const inputId = parseInt(this.userIdInput, 10);
+
+      this.apiService.validateUserId(inputId).subscribe(
+        (response: any) => {
+          this.userId = inputId;
+          console.log(`User ID validated: ${this.userId}`);
+        },
+        (error: any) => {
+          this.userIdError = 'Invalid User ID. Please try again.';
+          console.error('Error validating User ID:', error);
+        }
+      );
     } else {
-      alert('Invalid User ID. Please try again.');
+      this.userIdError = 'Please enter a valid User ID.';
     }
-  }
-
-  /**
-   * Retrieves the user ID from localStorage.
-   * @returns {number | null} The stored user ID or null if not found.
-   */
-  getUserIdFromLocalStorage(): number | null {
-    const userId = localStorage.getItem('user_id');
-    return userId ? parseInt(userId, 10) : null;
-  }
-
-  /**
-   * Stores the user ID in localStorage.
-   * @param userId The user ID to store.
-   */
-  storeUserIdInLocalStorage(userId: number): void {
-    localStorage.setItem('user_id', userId.toString());
   }
 }

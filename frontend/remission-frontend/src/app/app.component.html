@@ -9,12 +9,19 @@
     <p>
       We’re here to help you track your journey and make sense of your data. Log your daily symptoms, explore trends on your personalized dashboard, and gain valuable insights with CHIIP.
     </p>
-    <p>
-      Let’s take control of your health, one step at a time. Start by logging today’s symptoms!
-    </p>
-    <p><strong>Your User ID:</strong> {{ userId }}</p>
+
+    <!-- User ID Prompt -->
+    <div *ngIf="!userId">
+      <label for="userIdInput">Enter Your User ID:</label>
+      <input id="userIdInput" [(ngModel)]="userIdInput" placeholder="User ID" />
+      <button (click)="confirmUserId()">Confirm</button>
+      <p *ngIf="userIdError" class="error-message">{{ userIdError }}</p>
+    </div>
+
+    <p *ngIf="userId"><strong>Your User ID:</strong> {{ userId }}</p>
   </div>
 
   <!-- Route Rendering -->
   <router-outlet></router-outlet>
 </main>
+
