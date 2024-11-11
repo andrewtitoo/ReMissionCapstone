@@ -7,7 +7,7 @@ import { catchError } from 'rxjs/operators';
   providedIn: 'root' // Ensures the service is available application-wide
 })
 export class ApiService {
-  private baseUrl = 'http://localhost:5000/api'; // Update if your API URL changes
+  private baseUrl = 'http://localhost:5000/api'; // Base URL for your API
   private headers = new HttpHeaders({ 'Content-Type': 'application/json' });
 
   constructor(private http: HttpClient) {}
@@ -30,18 +30,19 @@ export class ApiService {
    */
   getSymptomLogs(): Observable<any> {
     const url = `${this.baseUrl}/symptom-logs`;
-    return this.http.get(url).pipe(
+    return this.http.get(url, { headers: this.headers }).pipe(
       catchError(this.handleError('fetching symptom logs'))
     );
   }
 
   /**
    * Fetches trend analysis insights from CHIIP.
+   * @param userId The ID of the user to analyze logs for
    * @returns Observable for bot analysis response
    */
-  getBotAnalysis(): Observable<any> {
+  getBotAnalysis(userId: number): Observable<any> {
     const url = `${this.baseUrl}/bot-analysis`;
-    return this.http.get(url).pipe(
+    return this.http.post(url, { user_id: userId }, { headers: this.headers }).pipe(
       catchError(this.handleError('fetching bot analysis'))
     );
   }
