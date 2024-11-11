@@ -18,17 +18,19 @@ export class BotComponent implements OnInit {
   constructor(private apiService: ApiService) {}
 
   ngOnInit(): void {
-    this.sendInitialInsights();
+    this.sendInitialInsights(); // Fetch initial insights on component load
   }
 
   sendInitialInsights(): void {
-    this.apiService.getBotAnalysis().subscribe(
+    const userId = 1; // Hardcoded user ID for MVP
+
+    this.apiService.getBotAnalysis(userId).subscribe(
       (data) => {
         if (data && data.analysis_summary) {
           this.messages.push('Hello! I am CHIIP, your companion for IBD management. Here are some insights based on your latest symptom data:');
           this.messages.push(data.analysis_summary);
         } else {
-          this.messages.push('No recent insights available at the moment. Please log some symptoms for more detailed analysis.');
+          this.messages.push('No recent insights available. Please log some symptoms for analysis.');
         }
       },
       (error) => {
@@ -40,7 +42,8 @@ export class BotComponent implements OnInit {
 
   sendMessage(): void {
     if (this.userMessage.trim() !== '') {
-      this.messages.push(this.userMessage);  // Display user message
+      this.messages.push(this.userMessage);  // Display user message in the chat
+
       this.apiService.getBotResponse(this.userMessage).subscribe(
         (data) => {
           if (data && data.response) {
@@ -54,6 +57,7 @@ export class BotComponent implements OnInit {
           this.messages.push('An error occurred while fetching the response. Please try again later.');
         }
       );
+
       this.userMessage = '';  // Clear input after sending
     }
   }
