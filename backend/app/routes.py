@@ -138,3 +138,33 @@ def predict_flare():
         }), 200
     except Exception as e:
         return jsonify({"error": "Database error: Unable to generate prediction"}), 500
+
+# --------------------- Bot Analysis ---------------------------
+
+@bp.route('/bot-analysis', methods=['GET'])
+def bot_analysis():
+    """
+    Analyze user's symptom logs and provide insights.
+    """
+    try:
+        # Fetch logs for user 1 (MVP user)
+        symptom_logs = SymptomLog.query.filter_by(user_id=1).all()
+
+        if not symptom_logs:
+            return jsonify({"error": "No symptom logs available for analysis"}), 404
+
+        # Simplified mock analysis for demonstration
+        high_stress_logs = [log for log in symptom_logs if log.stress_level > 7]
+        high_pain_logs = [log for log in symptom_logs if log.pain_level > 8]
+
+        insights = []
+        if high_stress_logs:
+            insights.append("You have experienced high stress levels recently. Consider stress-relief techniques.")
+        if high_pain_logs:
+            insights.append("You have experienced high pain levels recently. Consider discussing pain management strategies with your healthcare provider.")
+        if not insights:
+            insights.append("No significant flare-up risks detected. Keep maintaining your current routine.")
+
+        return jsonify({"analysis_summary": " ".join(insights)}), 200
+    except Exception as e:
+        return jsonify({"error": "Unable to analyze symptom logs"}), 500
