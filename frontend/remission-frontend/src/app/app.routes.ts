@@ -8,5 +8,5 @@ export const routes: Routes = [
   { path: 'logger', component: LoggerComponent },
   { path: 'bot', component: BotComponent },
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
-  { path: '**', redirectTo: '/dashboard' } // Fallback for unknown paths
+  { path: '**', redirectTo: '/dashboard' } // Wildcard route for 404s
 ];
