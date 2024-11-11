@@ -20,7 +20,8 @@ export class ApiService {
    */
   logSymptoms(symptomData: any, userId: number): Observable<any> {
     const url = `${this.baseUrl}/log-symptoms`;
-    return this.http.post(url, { ...symptomData, user_id: userId }, { headers: this.headers }).pipe(
+    const payload = { ...symptomData, user_id: userId };
+    return this.http.post(url, payload, { headers: this.headers }).pipe(
       catchError(this.handleError('logging symptoms'))
     );
   }
@@ -44,7 +45,8 @@ export class ApiService {
    */
   getBotAnalysis(userId: number): Observable<any> {
     const url = `${this.baseUrl}/bot-analysis`;
-    return this.http.post(url, { user_id: userId }, { headers: this.headers }).pipe(
+    const payload = { user_id: userId };
+    return this.http.post(url, payload, { headers: this.headers }).pipe(
       catchError(this.handleError('fetching bot analysis'))
     );
   }
@@ -56,7 +58,8 @@ export class ApiService {
    */
   getBotResponse(userMessage: string): Observable<any> {
     const url = `${this.baseUrl}/bot-response`;
-    return this.http.post(url, { message: userMessage }, { headers: this.headers }).pipe(
+    const payload = { message: userMessage };
+    return this.http.post(url, payload, { headers: this.headers }).pipe(
       catchError(this.handleError('sending bot message'))
     );
   }
