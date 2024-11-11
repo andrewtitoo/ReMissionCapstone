@@ -12,24 +12,36 @@ import { NavbarComponent } from './components/navbar/navbar.component';
 export class AppComponent implements OnInit {
   title = 'ReMission - Your IBD Management Companion';
   userId: number | null = null;
+  userIdInput: string = ''; // Store user input temporarily
 
   ngOnInit(): void {
-    this.initializeUserId();
+    this.promptForUserId();
   }
 
   /**
-   * Initializes the user ID for the current session.
-   * Checks localStorage for an existing ID or generates a new one.
+   * Prompts the user to enter their User ID or creates a new one.
    */
-  initializeUserId(): void {
+  promptForUserId(): void {
     const storedUserId = this.getUserIdFromLocalStorage();
     if (storedUserId) {
       this.userId = storedUserId;
-      console.log(`Existing User ID: ${this.userId}`);
+      console.log(`Welcome back! Your User ID is: ${this.userId}`);
     } else {
-      this.userId = this.generateRandomUserId();
+      // User needs to input their User ID manually
+      alert('Please enter your User ID or create a new one.');
+    }
+  }
+
+  /**
+   * Confirms and stores the entered User ID.
+   */
+  confirmUserId(): void {
+    if (this.userIdInput) {
+      this.userId = parseInt(this.userIdInput, 10);
       this.storeUserIdInLocalStorage(this.userId);
-      console.log(`New User ID Generated: ${this.userId}`);
+      console.log(`User ID confirmed: ${this.userId}`);
+    } else {
+      alert('Invalid User ID. Please try again.');
     }
   }
 
@@ -43,18 +55,10 @@ export class AppComponent implements OnInit {
   }
 
   /**
-   * Stores the generated user ID in localStorage.
+   * Stores the user ID in localStorage.
    * @param userId The user ID to store.
    */
   storeUserIdInLocalStorage(userId: number): void {
     localStorage.setItem('user_id', userId.toString());
-  }
-
-  /**
-   * Generates a random 5-digit user ID.
-   * @returns {number} The generated user ID.
-   */
-  generateRandomUserId(): number {
-    return Math.floor(10000 + Math.random() * 90000);
   }
 }
