@@ -1,61 +1,26 @@
 from flask import Blueprint, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_bcrypt import Bcrypt
 from datetime import datetime
-from .models import User, SymptomLog, Prediction
+from .models import User, SymptomLog
 from . import db
 
 bp = Blueprint('api', __name__)
-bcrypt = Bcrypt()
 
-# ---------------------- User Registration and Authentication ----------------------
+# ---------------------- Generate User ID ----------------------
 
-@bp.route('/register', methods=['POST'])
-def register():
+@bp.route('/generate-user', methods=['POST'])
+def generate_user():
     """
-    Register a new user by storing the username, email, and hashed password.
+    Generate a new user with a unique user_id.
     """
-    data = request.get_json()
-    required_fields = ['username', 'email', 'password']
-
-    if not all(field in data for field in required_fields):
-        return jsonify({"error": "All fields (username, email, password) are required"}), 400
-
-    username, email, password = data['username'], data['email'], data['password']
-
-    if User.query.filter_by(email=email).first():
-        return jsonify({"error": "User with this email already exists"}), 400
-
-    password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
-    new_user = User(username=username, email=email, password_hash=password_hash)
-
     try:
+        user_id = str(datetime.utcnow().timestamp()).replace('.', '')[:10]  # Generate a unique 10-digit ID
+        new_user = User(user_id=user_id)
         db.session.add(new_user)
         db.session.commit()
-        return jsonify({"message": "User registered successfully"}), 201
+        return jsonify({"message": "User created successfully", "user_id": user_id}), 201
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": "Database error: Unable to register user"}), 500
-
-
-@bp.route('/login', methods=['POST'])
-def login():
-    """
-    Log in a user by validating credentials and returning a JWT token.
-    """
-    data = request.get_json()
-    required_fields = ['email', 'password']
-
-    if not all(field in data for field in required_fields):
-        return jsonify({"error": "Email and password are required"}), 400
-
-    email, password = data['email'], data['password']
-    user = User.query.filter_by(email=email).first()
-
-    if user and bcrypt.check_password_hash(user.password_hash, password):
-        return jsonify({"message": "Login successful"}), 200
-    return jsonify({"error": "Invalid credentials"}), 401
-
+        return jsonify({"error": "Database error: Unable to create user"}), 500
 
 # ---------------------- Symptom Logging and Retrieval ----------------------
 
@@ -69,8 +34,8 @@ def log_symptoms():
     user_id = data.get('user_id')
     if not user_id:
         return jsonify({"error": "User ID is required"}), 400
-    required_fields = ['pain_level', 'stress_level', 'sleep_hours', 'exercise_done', 'took_medication']
 
+    required_fields = ['pain_level', 'stress_level', 'sleep_hours', 'exercise_done', 'took_medication']
     if not all(field in data for field in required_fields):
         return jsonify({"error": "All symptom fields are required"}), 400
 
@@ -95,12 +60,10 @@ def log_symptoms():
 
 @bp.route('/symptom-logs', methods=['GET'])
 def get_symptom_logs():
-    user_id = request.args.get('user_id', type=int)
+    user_id = request.args.get('user_id')
     if not user_id:
         return jsonify({"error": "User ID is required"}), 400
-    """
-    Retrieve all logged symptoms for the default user.
-    """
+
     try:
         symptom_logs = SymptomLog.query.filter_by(user_id=user_id).all()
         response_data = [
@@ -120,32 +83,6 @@ def get_symptom_logs():
     except Exception as e:
         return jsonify({"error": "Database error: Unable to fetch symptom logs"}), 500
 
-
-# ---------------------- Prediction Endpoint ----------------------
-
-@bp.route('/predict-flare', methods=['POST'])
-def predict_flare():
-    """
-    Use the logged symptoms to make a prediction about potential flare-ups.
-    """
-    data = request.get_json()
-    required_fields = ['pain_level', 'stress_level', 'sleep_hours', 'exercise_done', 'took_medication']
-
-    if not all(field in data for field in required_fields):
-        return jsonify({"error": "All prediction fields are required"}), 400
-
-    try:
-        prediction_result = "Flare-up Likely" if data['stress_level'] > 7 or data['pain_level'] > 8 else "Stable"
-        additional_info = "High stress or pain levels may indicate a potential flare-up."
-
-        return jsonify({
-            "prediction_result": prediction_result,
-            "additional_info": additional_info
-        }), 200
-    except Exception as e:
-        return jsonify({"error": "Database error: Unable to generate prediction"}), 500
-
-
 # --------------------- Bot Analysis ---------------------------
 
 @bp.route('/bot-analysis', methods=['POST'])
@@ -155,8 +92,10 @@ def bot_analysis():
     """
     try:
         data = request.get_json()
-        print(f"Request Data: {data}")  # Debugging line to log request data
-        user_id = data.get('user_id', 1)  # Default to 1 if not provided for MVP
+        user_id = data.get('user_id')
+
+        if not user_id:
+            return jsonify({"error": "User ID is required"}), 400
 
         latest_log = SymptomLog.query.filter_by(user_id=user_id).order_by(SymptomLog.logged_at.desc()).first()
 
@@ -185,15 +124,15 @@ def bot_analysis():
         if flare:
             insights.append("Your recent symptom logs indicate a potential flare-up. Please take care of yourself.")
             if latest_log.pain_level > 5:
-                insights.append(f"Pain Level: {latest_log.pain_level}. High pain can be challenging. If it persists, consider discussing it with your healthcare provider.")
+                insights.append(f"Pain Level: {latest_log.pain_level}. High pain can be challenging.")
             if latest_log.stress_level > 6:
-                insights.append(f"Stress Level: {latest_log.stress_level}. High stress affects your overall well-being. Try relaxation techniques like meditation.")
+                insights.append(f"Stress Level: {latest_log.stress_level}. High stress affects your well-being.")
             if latest_log.sleep_hours < 7:
-                insights.append(f"Sleep: {latest_log.sleep_hours} hours. Rest is essential. Aim for 7-9 hours.")
+                insights.append(f"Sleep: {latest_log.sleep_hours} hours. Aim for 7-9 hours.")
             if not latest_log.exercise_done:
-                insights.append("Exercise: You didn’t log exercise. Light activities can help boost your energy.")
+                insights.append("Exercise: Consider light activities to boost your energy.")
             if not latest_log.took_medication:
-                insights.append("Medication: Please ensure you’re following your medication plan.")
+                insights.append("Medication: Ensure you're following your plan.")
         else:
             insights.append("Fantastic! You seem to be in remission. Keep up your healthy habits!")
 
@@ -203,5 +142,4 @@ def bot_analysis():
         }), 200
 
     except Exception as e:
-        print(f"Error during bot analysis: {e}")
         return jsonify({"error": "Unable to analyze symptom logs"}), 500
