@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Chart, registerables } from 'chart.js';
 import { ApiService } from '../../services/api.service';
 import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http'; // Ensure HttpClientModule is included
 
 interface SymptomLog {
   logged_at: string;
@@ -18,7 +19,7 @@ interface SymptomLog {
   templateUrl: './dashboard.component.html',
   standalone: true,
   styleUrls: ['./dashboard.component.css'],
-  imports: [CommonModule] // Ensure CommonModule is included for *ngIf, *ngFor, etc.
+  imports: [CommonModule, HttpClientModule] // Added HttpClientModule for ApiService dependency
 })
 export class DashboardComponent implements OnInit {
   loading = true;

@@ -2,13 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../services/api.service';
 import { CommonModule, NgClass } from '@angular/common'; // Combined imports
 import { FormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http'; // Import HttpClientModule
 
 @Component({
   selector: 'app-bot',
   templateUrl: './bot.component.html',
   standalone: true,
   styleUrls: ['./bot.component.css'],
-  imports: [CommonModule, NgClass, FormsModule] // Ensure CommonModule is included
+  imports: [CommonModule, NgClass, FormsModule, HttpClientModule] // Ensure HttpClientModule is included
 })
 export class BotComponent implements OnInit {
   messages: string[] = [];

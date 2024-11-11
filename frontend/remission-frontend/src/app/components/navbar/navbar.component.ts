@@ -6,7 +6,6 @@ import { CommonModule } from '@angular/common';
   templateUrl: './navbar.component.html',
   standalone: true,
   styleUrls: ['./navbar.component.css'],
-  imports: [CommonModule] // Ensure CommonModule is included for directives if needed
+  imports: [CommonModule] // Ensure CommonModule is included
 })
 export class NavbarComponent {}
-

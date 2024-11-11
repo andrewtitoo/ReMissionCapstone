@@ -2,13 +2,14 @@ import { Component } from '@angular/core';
 import { ApiService } from '../../services/api.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http'; // Ensure HttpClientModule is included
 
 @Component({
   selector: 'app-logger',
   templateUrl: './logger.component.html',
   standalone: true,
   styleUrls: ['./logger.component.css'],
-  imports: [FormsModule, CommonModule] // Added CommonModule for directives like *ngIf, *ngFor
+  imports: [FormsModule, CommonModule, HttpClientModule] // Added HttpClientModule
 })
 export class LoggerComponent {
   painLevel: number = 5;
