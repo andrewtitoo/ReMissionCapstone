@@ -3,37 +3,22 @@
   <app-navbar></app-navbar>
 
   <!-- Welcome Section -->
-  <div *ngIf="!userIdInput && !userId" class="welcome-container text-center p-3">
+  <div *ngIf="!userId" class="welcome-container text-center p-3">
     <h1>Welcome to ReMission</h1>
     <p>Your trusted companion in managing IBD.</p>
     <p>
       We're here to help you track your journey and make sense of your data. Log your daily symptoms, explore trends on your personalized dashboard, and gain valuable insights with CHIIP.
     </p>
     <p class="text-info">
-      <strong>First Time? Generate your User ID below!</strong>
+      <strong>Loading your User ID...</strong>
     </p>
+    <p *ngIf="userIdError" class="text-danger">{{ userIdError }}</p>
   </div>
 
-  <!-- User ID Input Section -->
-  <div *ngIf="!userId" class="user-id-input text-center p-3">
-    <h2>Enter or Generate Your User ID</h2>
-    <div class="d-flex justify-content-center">
-      <input
-        type="text"
-        [(ngModel)]="userIdInput"
-        placeholder="Enter your User ID"
-        class="form-control w-25"
-      />
-      <button (click)="generateNewUserId()" class="btn btn-secondary mx-2">Generate New ID</button>
-    </div>
-    <button (click)="confirmUserId()" class="btn btn-primary mt-3">Confirm</button>
-    <p *ngIf="userIdError" class="error-message text-danger">{{ userIdError }}</p>
-  </div>
-
-  <!-- Dashboard After UserID Set -->
+  <!-- Dashboard Section After UserID Assigned -->
   <div *ngIf="userId" class="text-center p-3">
     <h2>Your Symptom Dashboard</h2>
-    <p><strong>Your User ID:</strong> {{ userId }}</p>
+    <p><strong>Your User ID:</strong> {{ displayUserId() }}</p>
     <router-outlet></router-outlet>
   </div>
 </main>
