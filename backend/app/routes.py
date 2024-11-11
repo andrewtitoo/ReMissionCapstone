@@ -66,6 +66,9 @@ def log_symptoms():
     exercise, and medication information.
     """
     data = request.get_json()
+    user_id = data.get('user_id')
+    if not user_id:
+        return jsonify({"error": "User ID is required"}), 400
     required_fields = ['pain_level', 'stress_level', 'sleep_hours', 'exercise_done', 'took_medication']
 
     if not all(field in data for field in required_fields):
@@ -92,6 +95,9 @@ def log_symptoms():
 
 @bp.route('/symptom-logs', methods=['GET'])
 def get_symptom_logs():
+    user_id = request.args.get('user_id', type=int)
+    if not user_id:
+        return jsonify({"error": "User ID is required"}), 400
     """
     Retrieve all logged symptoms for the default user.
     """

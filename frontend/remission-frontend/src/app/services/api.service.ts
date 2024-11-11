@@ -15,21 +15,23 @@ export class ApiService {
   /**
    * Logs symptoms for a user.
    * @param symptomData Object containing symptom data (pain level, stress, etc.)
+   * @param userId The ID of the user logging symptoms
    * @returns Observable for API response
    */
-  logSymptoms(symptomData: any): Observable<any> {
+  logSymptoms(symptomData: any, userId: number): Observable<any> {
     const url = `${this.baseUrl}/log-symptoms`;
-    return this.http.post(url, symptomData, { headers: this.headers }).pipe(
+    return this.http.post(url, { ...symptomData, user_id: userId }, { headers: this.headers }).pipe(
       catchError(this.handleError('logging symptoms'))
     );
   }
 
   /**
-   * Retrieves all logged symptoms for the current user.
+   * Retrieves all logged symptoms for the specified user.
+   * @param userId The ID of the user to retrieve logs for
    * @returns Observable for logged symptom data
    */
-  getSymptomLogs(): Observable<any> {
-    const url = `${this.baseUrl}/symptom-logs`;
+  getSymptomLogs(userId: number): Observable<any> {
+    const url = `${this.baseUrl}/symptom-logs?user_id=${userId}`;
     return this.http.get(url, { headers: this.headers }).pipe(
       catchError(this.handleError('fetching symptom logs'))
     );
