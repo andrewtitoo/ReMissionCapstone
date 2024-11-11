@@ -1,12 +1,10 @@
 from flask import Blueprint, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from datetime import datetime
 from .models import User, SymptomLog, Prediction
 from . import db
 
-# Set up Blueprint, bcrypt for hashing passwords, and db (already initialized in __init__.py)
 bp = Blueprint('api', __name__)
 bcrypt = Bcrypt()
 
@@ -20,7 +18,6 @@ def register():
     data = request.get_json()
     required_fields = ['username', 'email', 'password']
 
-    # Validate required fields
     if not all(field in data for field in required_fields):
         return jsonify({"error": "All fields (username, email, password) are required"}), 400
 
@@ -56,34 +53,27 @@ def login():
     user = User.query.filter_by(email=email).first()
 
     if user and bcrypt.check_password_hash(user.password_hash, password):
-        access_token = create_access_token(identity=user.id)
-        return jsonify({"token": access_token}), 200
+        return jsonify({"message": "Login successful"}), 200
     return jsonify({"error": "Invalid credentials"}), 401
 
 
 # ---------------------- Symptom Logging and Retrieval ----------------------
 
 @bp.route('/log-symptoms', methods=['POST'])
-@jwt_required()
 def log_symptoms():
     """
     Log symptoms for a user including pain level, stress level, sleep hours,
     exercise, and medication information.
     """
-    current_user_id = get_jwt_identity()
     data = request.get_json()
-
     required_fields = ['pain_level', 'stress_level', 'sleep_hours', 'exercise_done', 'took_medication']
 
     if not all(field in data for field in required_fields):
         return jsonify({"error": "All symptom fields are required"}), 400
 
-    if data['exercise_done'] and not data.get('exercise_type'):
-        return jsonify({"error": "Exercise type is required if exercise was done"}), 400
-
     try:
         new_log = SymptomLog(
-            user_id=current_user_id,
+            user_id=1,  # Default to user ID 1 for MVP
             pain_level=data['pain_level'],
             stress_level=data['stress_level'],
             sleep_hours=data['sleep_hours'],
@@ -101,14 +91,12 @@ def log_symptoms():
 
 
 @bp.route('/symptom-logs', methods=['GET'])
-@jwt_required()
 def get_symptom_logs():
     """
-    Retrieve all logged symptoms for the current user.
+    Retrieve all logged symptoms for the default user.
     """
-    current_user_id = get_jwt_identity()
     try:
-        symptom_logs = SymptomLog.query.filter_by(user_id=current_user_id).all()
+        symptom_logs = SymptomLog.query.filter_by(user_id=1).all()
         response_data = [
             {
                 "id": log.id,
@@ -130,12 +118,10 @@ def get_symptom_logs():
 # ---------------------- Prediction Endpoint ----------------------
 
 @bp.route('/predict-flare', methods=['POST'])
-@jwt_required()
 def predict_flare():
     """
     Use the logged symptoms to make a prediction about potential flare-ups.
     """
-    current_user_id = get_jwt_identity()
     data = request.get_json()
     required_fields = ['pain_level', 'stress_level', 'sleep_hours', 'exercise_done', 'took_medication']
 
@@ -143,24 +129,12 @@ def predict_flare():
         return jsonify({"error": "All prediction fields are required"}), 400
 
     try:
-        # Mock prediction logic
         prediction_result = "Flare-up Likely" if data['stress_level'] > 7 or data['pain_level'] > 8 else "Stable"
-        additional_info = "High stress or pain levels may indicate a potential flare-up. Take appropriate measures."
-
-        new_prediction = Prediction(
-            user_id=current_user_id,
-            prediction_result=prediction_result,
-            additional_info=additional_info,
-            predicted_at=datetime.utcnow()
-        )
-
-        db.session.add(new_prediction)
-        db.session.commit()
+        additional_info = "High stress or pain levels may indicate a potential flare-up."
 
         return jsonify({
             "prediction_result": prediction_result,
             "additional_info": additional_info
         }), 200
     except Exception as e:
-        db.session.rollback()
         return jsonify({"error": "Database error: Unable to generate prediction"}), 500
