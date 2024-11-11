@@ -148,17 +148,22 @@ def bot_analysis():
     """
     try:
         data = request.get_json()
-        user_id = data.get('user_id', 1)  # Default user ID for MVP
+        user_id = data.get('user_id', 1)  # Default to 1 if not provided for MVP
+
+        # Fetch latest log for the given user
         latest_log = SymptomLog.query.filter_by(user_id=user_id).order_by(SymptomLog.logged_at.desc()).first()
 
         if not latest_log:
             return jsonify({"error": "No symptom logs available for analysis"}), 404
 
-        # Flare classification
+        # Classify based on symptom logs
         flare = 0
         if latest_log.pain_level >= 7:
             flare = 1
-        elif latest_log.pain_level >= 5 and (latest_log.sleep_hours < 7 or latest_log.took_medication == 0 or latest_log.stress_level > 5):
+        elif latest_log.pain_level >= 5 and (
+                latest_log.sleep_hours < 7 or
+                latest_log.took_medication == 0 or
+                latest_log.stress_level > 5):
             flare = 1
         elif latest_log.pain_level >= 2 and sum([
             latest_log.sleep_hours < 7,
@@ -168,22 +173,23 @@ def bot_analysis():
         ]) >= 3:
             flare = 1
 
-        # Insights generation
+        # Generate insights
         insights = []
         if flare:
-            insights.append("Based on your input, it appears your symptoms are flaring up. It is imperative to focus on your well-being.")
+            insights.append("⚠️ *Your recent symptoms suggest a potential flare-up.* It's essential to focus on your well-being during this time.")
             if latest_log.pain_level > 5:
-                insights.append(f"You logged a pain score of {latest_log.pain_level}. High pain levels should be monitored closely.")
+                insights.append(f"🩺 *Pain Level*: {latest_log.pain_level}. High pain levels can be challenging. Remember, managing pain is crucial. Consider gentle activities that help ease discomfort, and reach out to your healthcare provider if needed.")
             if latest_log.stress_level > 6:
-                insights.append(f"You logged a high stress score of {latest_log.stress_level}. Consider stress-reduction techniques.")
+                insights.append(f"🌪️ *Stress Level*: {latest_log.stress_level}. High stress can impact your health. Try relaxation techniques like deep breathing, meditation, or listening to calming music.")
             if latest_log.sleep_hours < 7:
-                insights.append(f"You reported {latest_log.sleep_hours} hours of sleep. Prioritize rest for recovery.")
+                insights.append(f"🌙 *Sleep*: You reported {latest_log.sleep_hours} hours of sleep. Rest is a cornerstone of recovery. Aim for 7-9 hours if possible. Establishing a bedtime routine might help improve your sleep quality.")
             if not latest_log.exercise_done:
-                insights.append("Exercise is beneficial. Consider light activities to improve well-being.")
+                insights.append("🏃 *Exercise*: No exercise logged. Even light activity, such as a short walk or gentle yoga, can boost your mood and support your overall health.")
             if not latest_log.took_medication:
-                insights.append("Medication adherence is crucial. Please follow your healthcare provider's plan.")
+                insights.append("💊 *Medication*: You indicated missing your medication. Sticking to your prescribed treatment plan is key to managing your symptoms effectively. If you have concerns, don’t hesitate to discuss them with your healthcare provider.")
         else:
-            insights.append("Based on your input, it appears you are in remission! Keep up the great work!")
+            insights.append("🎉 *Great news!* Based on your recent inputs, it seems like you're in remission! 🌟")
+            insights.append("Keep maintaining those healthy habits that support your well-being. Remember, every small effort contributes to your journey. You're doing an amazing job!")
 
         return jsonify({
             "classification": "flare" if flare else "remission",
@@ -191,4 +197,5 @@ def bot_analysis():
         }), 200
 
     except Exception as e:
+        print(f"Error during bot analysis: {e}")
         return jsonify({"error": "Unable to analyze symptom logs"}), 500
