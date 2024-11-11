@@ -76,7 +76,7 @@ def log_symptoms():
 
     try:
         new_log = SymptomLog(
-            user_id=1,  # Default to user ID 1 for MVP
+            user_id=user_id,
             pain_level=data['pain_level'],
             stress_level=data['stress_level'],
             sleep_hours=data['sleep_hours'],
@@ -102,7 +102,7 @@ def get_symptom_logs():
     Retrieve all logged symptoms for the default user.
     """
     try:
-        symptom_logs = SymptomLog.query.filter_by(user_id=1).all()
+        symptom_logs = SymptomLog.query.filter_by(user_id=user_id).all()
         response_data = [
             {
                 "id": log.id,
