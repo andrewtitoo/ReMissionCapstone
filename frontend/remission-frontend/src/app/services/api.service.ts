@@ -62,6 +62,32 @@ export class ApiService {
   }
 
   /**
+   * Fetches trend analysis insights from CHIIP.
+   * @param userId The ID of the user to analyze logs for.
+   * @returns Observable for bot analysis response.
+   */
+  getBotAnalysis(userId: string): Observable<any> {
+    const url = `${this.baseUrl}/bot-analysis`;
+    const payload = { user_id: userId };
+    return this.http.post(url, payload, { headers: this.headers }).pipe(
+      catchError(this.handleError('fetching bot analysis'))
+    );
+  }
+
+  /**
+   * Sends a user message to CHIIP and retrieves a response.
+   * @param userMessage The message from the user to the bot.
+   * @returns Observable with the bot's response.
+   */
+  getBotResponse(userMessage: string): Observable<any> {
+    const url = `${this.baseUrl}/bot-response`;
+    const payload = { message: userMessage };
+    return this.http.post(url, payload, { headers: this.headers }).pipe(
+      catchError(this.handleError('sending a bot message'))
+    );
+  }
+
+  /**
    * Generic error handler for API requests.
    * @param operation Description of the failed operation.
    * @returns Observable that throws an error.
