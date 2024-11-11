@@ -141,30 +141,54 @@ def predict_flare():
 
 # --------------------- Bot Analysis ---------------------------
 
-@bp.route('/bot-analysis', methods=['GET'])
+@bp.route('/bot-analysis', methods=['POST'])
 def bot_analysis():
     """
-    Analyze user's symptom logs and provide insights.
+    Analyze user's symptom logs and provide insights based on the latest log.
     """
     try:
-        # Fetch logs for user 1 (MVP user)
-        symptom_logs = SymptomLog.query.filter_by(user_id=1).all()
+        data = request.get_json()
+        user_id = data.get('user_id', 1)  # Default user ID for MVP
+        latest_log = SymptomLog.query.filter_by(user_id=user_id).order_by(SymptomLog.logged_at.desc()).first()
 
-        if not symptom_logs:
+        if not latest_log:
             return jsonify({"error": "No symptom logs available for analysis"}), 404
 
-        # Simplified mock analysis for demonstration
-        high_stress_logs = [log for log in symptom_logs if log.stress_level > 7]
-        high_pain_logs = [log for log in symptom_logs if log.pain_level > 8]
+        # Flare classification
+        flare = 0
+        if latest_log.pain_level >= 7:
+            flare = 1
+        elif latest_log.pain_level >= 5 and (latest_log.sleep_hours < 7 or latest_log.took_medication == 0 or latest_log.stress_level > 5):
+            flare = 1
+        elif latest_log.pain_level >= 2 and sum([
+            latest_log.sleep_hours < 7,
+            latest_log.took_medication == 0,
+            latest_log.exercise_done == 0,
+            latest_log.stress_level > 6
+        ]) >= 3:
+            flare = 1
 
+        # Insights generation
         insights = []
-        if high_stress_logs:
-            insights.append("You have experienced high stress levels recently. Consider stress-relief techniques.")
-        if high_pain_logs:
-            insights.append("You have experienced high pain levels recently. Consider discussing pain management strategies with your healthcare provider.")
-        if not insights:
-            insights.append("No significant flare-up risks detected. Keep maintaining your current routine.")
+        if flare:
+            insights.append("Based on your input, it appears your symptoms are flaring up. It is imperative to focus on your well-being.")
+            if latest_log.pain_level > 5:
+                insights.append(f"You logged a pain score of {latest_log.pain_level}. High pain levels should be monitored closely.")
+            if latest_log.stress_level > 6:
+                insights.append(f"You logged a high stress score of {latest_log.stress_level}. Consider stress-reduction techniques.")
+            if latest_log.sleep_hours < 7:
+                insights.append(f"You reported {latest_log.sleep_hours} hours of sleep. Prioritize rest for recovery.")
+            if not latest_log.exercise_done:
+                insights.append("Exercise is beneficial. Consider light activities to improve well-being.")
+            if not latest_log.took_medication:
+                insights.append("Medication adherence is crucial. Please follow your healthcare provider's plan.")
+        else:
+            insights.append("Based on your input, it appears you are in remission! Keep up the great work!")
 
-        return jsonify({"analysis_summary": " ".join(insights)}), 200
+        return jsonify({
+            "classification": "flare" if flare else "remission",
+            "insights": insights
+        }), 200
+
     except Exception as e:
         return jsonify({"error": "Unable to analyze symptom logs"}), 500
