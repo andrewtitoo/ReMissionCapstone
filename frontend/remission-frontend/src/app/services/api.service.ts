@@ -17,9 +17,9 @@ export class ApiService {
    * @returns Observable containing the new User ID.
    */
   createUser(): Observable<any> {
-    const url = `${this.baseUrl}/create-user`;
+    const url = `${this.baseUrl}/users`;
     return this.http.post(url, {}, { headers: this.headers }).pipe(
-      catchError(this.handleError('creating new user'))
+      catchError(this.handleError('creating a new user'))
     );
   }
 
@@ -29,16 +29,16 @@ export class ApiService {
    * @returns Observable for API response.
    */
   validateUserId(userId: number): Observable<any> {
-    const url = `${this.baseUrl}/validate-user/${userId}`;
+    const url = `${this.baseUrl}/users/${userId}`;
     return this.http.get(url, { headers: this.headers }).pipe(
-      catchError(this.handleError('validating user ID'))
+      catchError(this.handleError('validating the user ID'))
     );
   }
 
   /**
    * Logs symptoms for a user.
    * @param symptomData Object containing symptom data (pain level, stress, etc.)
-   * @param userId The ID of the user logging symptoms
+   * @param userId The ID of the user logging symptoms.
    * @returns Observable for API response.
    */
   logSymptoms(symptomData: any, userId: number): Observable<any> {
@@ -70,7 +70,7 @@ export class ApiService {
     const url = `${this.baseUrl}/bot-response`;
     const payload = { message: userMessage };
     return this.http.post(url, payload, { headers: this.headers }).pipe(
-      catchError(this.handleError('sending bot message'))
+      catchError(this.handleError('sending a bot message'))
     );
   }
 
@@ -95,8 +95,9 @@ export class ApiService {
   private handleError(operation: string) {
     return (error: any): Observable<never> => {
       console.error(`Error during ${operation}:`, error); // Log to console for debugging
-      alert(`An error occurred while ${operation}. Please try again later.`);
-      return throwError(() => new Error('Something went wrong with the network request.'));
+      const errorMessage = error.error?.message || `An error occurred while ${operation}. Please try again later.`;
+      alert(errorMessage);
+      return throwError(() => new Error(errorMessage));
     };
   }
 }

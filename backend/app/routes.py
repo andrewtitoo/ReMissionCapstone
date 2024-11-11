@@ -10,14 +10,13 @@ bp = Blueprint('api', __name__)
 @bp.route('/generate-user', methods=['POST'])
 def generate_user():
     """
-    Generate a new user with a unique user_id.
+    Generate a new user and return their user_id.
     """
     try:
-        user_id = str(datetime.utcnow().timestamp()).replace('.', '')[:10]  # Generate a unique 10-digit ID
-        new_user = User(user_id=user_id)
+        new_user = User()  # Simply create a new user instance; ID will auto-increment
         db.session.add(new_user)
         db.session.commit()
-        return jsonify({"message": "User created successfully", "user_id": user_id}), 201
+        return jsonify({"message": "User created successfully", "user_id": new_user.id}), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": "Database error: Unable to create user"}), 500
@@ -56,7 +55,6 @@ def log_symptoms():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": "Database error: Unable to log symptoms"}), 500
-
 
 @bp.route('/symptom-logs', methods=['GET'])
 def get_symptom_logs():

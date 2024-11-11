@@ -1,12 +1,12 @@
 -- SQL schema for ReMission database
 
 -- Table for sharing user information
+-- Simplified Table for sharing user information
 CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    email VARCHAR(120) NOT NULL UNIQUE,
-    password_hash VARCHAR(128) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id INTEGER PRIMARY KEY AUTOINCREMENT, -- The user ID will now serve as the main identifier
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Only store account creation time
+);
+
 );
 -- Table for storing symptom logs reported by users
 CREATE TABLE IF NOT EXISTS symptom_logs (
