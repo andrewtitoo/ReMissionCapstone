@@ -62,6 +62,19 @@ export class ApiService {
   }
 
   /**
+   * Sends a user message to CHIIP and retrieves a response.
+   * @param userMessage The message from the user to the bot.
+   * @returns Observable with the bot's response.
+   */
+  getBotResponse(userMessage: string): Observable<any> {
+    const url = `${this.baseUrl}/bot-response`;
+    const payload = { message: userMessage };
+    return this.http.post(url, payload, { headers: this.headers }).pipe(
+      catchError(this.handleError('sending bot message'))
+    );
+  }
+
+  /**
    * Fetches trend analysis insights from CHIIP.
    * @param userId The ID of the user to analyze logs for.
    * @returns Observable for bot analysis response.

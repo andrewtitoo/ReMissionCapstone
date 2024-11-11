@@ -24,15 +24,22 @@ export class AppComponent implements OnInit {
     this.promptForUserId();
   }
 
+  /**
+   * Prompts the user to enter or generate a User ID.
+   */
   promptForUserId(): void {
-    this.userId = null;
+    this.userId = null; // Reset User ID on load
   }
 
+  /**
+   * Generates a new User ID by calling the backend.
+   */
   generateNewUserId(): void {
     this.apiService.createUser().subscribe(
       (response: any) => {
-        this.userIdInput = response.user_id.toString();
+        this.userIdInput = response.user_id.toString(); // Assuming API returns { user_id: number }
         alert(`New User ID Generated: ${this.userIdInput}. Please save it!`);
+        this.userIdError = ''; // Clear error message upon success
       },
       (error: any) => {
         this.userIdError = 'Failed to generate User ID. Try again later.';
@@ -41,13 +48,17 @@ export class AppComponent implements OnInit {
     );
   }
 
+  /**
+   * Confirms the entered User ID by validating it with the backend.
+   */
   confirmUserId(): void {
     if (this.userIdInput) {
       const inputId = parseInt(this.userIdInput, 10);
       this.apiService.validateUserId(inputId).subscribe(
         (response: any) => {
-          this.userId = inputId;
+          this.userId = inputId; // Set the confirmed User ID
           console.log(`User ID validated: ${this.userId}`);
+          this.userIdError = ''; // Clear error message upon success
         },
         (error: any) => {
           this.userIdError = 'Invalid User ID. Please try again.';
@@ -59,3 +70,4 @@ export class AppComponent implements OnInit {
     }
   }
 }
+

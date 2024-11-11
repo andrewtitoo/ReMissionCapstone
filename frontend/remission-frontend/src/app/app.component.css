@@ -1,0 +1,5 @@
+input[type="text"] {
+  max-width: 200px; /* Limit text box width */
+  margin: 0 auto;
+  display: block;
+}
