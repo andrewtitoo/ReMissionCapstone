@@ -9,9 +9,10 @@ bp = Blueprint('api', __name__)
 # ---------------------- Generate User ID ----------------------
 
 @bp.route('/generate-user', methods=['POST'])
-def generate_user():
+@bp.route('/auto-assign-user', methods=['GET'])
+def auto_assign_user():
     """
-    Generate a new user with a unique user_id and return their user_id.
+    Automatically assign a unique user ID when the app is accessed.
     """
     try:
         # Generate a unique 6-digit user ID
@@ -19,13 +20,17 @@ def generate_user():
         while User.query.filter_by(user_id=user_id).first():
             user_id = str(random.randint(100000, 999999))  # Ensure uniqueness
 
+        # Create the user and commit to the database
         new_user = User(user_id=user_id)
         db.session.add(new_user)
         db.session.commit()
-        return jsonify({"message": "User created successfully", "user_id": new_user.user_id}), 201
+
+        return jsonify({"message": "User ID assigned successfully", "user_id": new_user.user_id}), 200
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": "Database error: Unable to create user"}), 500
+        print(f"Error during user ID assignment: {e}")
+        return jsonify({"error": f"Database error: Unable to assign user ID ({str(e)})"}), 500
+
 
 # ---------------------- Validate User ID ----------------------
 
@@ -41,6 +46,7 @@ def validate_user(user_id):
         else:
             return jsonify({"error": "User ID not found"}), 404
     except Exception as e:
+        print(f"Error validating user ID: {e}")
         return jsonify({"error": "Database error: Unable to validate user ID"}), 500
 
 # ---------------------- Symptom Logging ----------------------
@@ -80,6 +86,7 @@ def log_symptoms():
         return jsonify({"message": "Symptom log created successfully"}), 201
     except Exception as e:
         db.session.rollback()
+        print(f"Error during symptom logging: {e}")
         return jsonify({"error": "Database error: Unable to log symptoms"}), 500
 
 # ---------------------- Retrieve Symptom Logs ----------------------
@@ -112,8 +119,8 @@ def get_symptom_logs():
         ]
         return jsonify(response_data), 200
     except Exception as e:
+        print(f"Error retrieving symptom logs: {e}")
         return jsonify({"error": "Database error: Unable to fetch symptom logs"}), 500
-
 
 # --------------------- Bot Analysis ---------------------------
 
@@ -174,4 +181,5 @@ def bot_analysis():
         }), 200
 
     except Exception as e:
+        print(f"Error analyzing logs: {e}")
         return jsonify({"error": "Unable to analyze symptom logs"}), 500
