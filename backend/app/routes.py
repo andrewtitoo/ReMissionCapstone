@@ -149,9 +149,9 @@ def bot_analysis():
     """
     try:
         data = request.get_json()
+        print(f"Request Data: {data}")  # Debugging line to log request data
         user_id = data.get('user_id', 1)  # Default to 1 if not provided for MVP
 
-        # Fetch latest log for the given user
         latest_log = SymptomLog.query.filter_by(user_id=user_id).order_by(SymptomLog.logged_at.desc()).first()
 
         if not latest_log:
