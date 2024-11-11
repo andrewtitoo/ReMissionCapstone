@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Chart, registerables } from 'chart.js';
 import { ApiService } from '../../services/api.service';
 import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http'; // Ensure HttpClientModule is included
+import { HttpClientModule } from '@angular/common/http';
 
 interface SymptomLog {
   logged_at: string;
@@ -19,22 +19,23 @@ interface SymptomLog {
   templateUrl: './dashboard.component.html',
   standalone: true,
   styleUrls: ['./dashboard.component.css'],
-  imports: [CommonModule, HttpClientModule] // Added HttpClientModule for ApiService dependency
+  imports: [CommonModule, HttpClientModule]
 })
 export class DashboardComponent implements OnInit {
   loading = true;
   errorMessage: string | null = null;
 
   constructor(private apiService: ApiService) {
-    Chart.register(...registerables); // Register chart.js components
+    Chart.register(...registerables);
   }
 
   ngOnInit(): void {
-    this.fetchAndDisplayCharts();
+    const userId = parseInt(localStorage.getItem('user_id') || '1', 10); // Fetch user ID from local storage
+    this.fetchAndDisplayCharts(userId);
   }
 
-  fetchAndDisplayCharts(): void {
-    this.apiService.getSymptomLogs().subscribe(
+  fetchAndDisplayCharts(userId: number): void {
+    this.apiService.getSymptomLogs(userId).subscribe(
       (data: SymptomLog[]) => {
         if (data.length > 0) {
           this.createSymptomTrendChart(data);
