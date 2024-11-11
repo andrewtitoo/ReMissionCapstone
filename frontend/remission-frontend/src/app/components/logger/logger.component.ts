@@ -38,7 +38,12 @@ export class LoggerComponent {
   onSubmit(): void {
     if (!this.isFormValid()) return;
 
-    const userId = parseInt(localStorage.getItem('user_id') || '1', 10); // Retrieve user ID dynamically
+    const userId = parseInt(localStorage.getItem('user_id') || '0', 10); // Retrieve user ID dynamically
+
+    if (!userId) {
+      this.errorMessage = 'User ID is missing. Please refresh the page or contact support.';
+      return; // Prevent further execution if user ID is missing
+    }
 
     const loggedData = {
       pain_level: this.painLevel,
