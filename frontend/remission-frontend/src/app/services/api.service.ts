@@ -13,10 +13,33 @@ export class ApiService {
   constructor(private http: HttpClient) {}
 
   /**
+   * Creates a new user and returns a generated User ID.
+   * @returns Observable containing the new User ID.
+   */
+  createUser(): Observable<any> {
+    const url = `${this.baseUrl}/create-user`;
+    return this.http.post(url, {}, { headers: this.headers }).pipe(
+      catchError(this.handleError('creating new user'))
+    );
+  }
+
+  /**
+   * Validates if a given User ID exists in the system.
+   * @param userId The User ID to validate.
+   * @returns Observable for API response.
+   */
+  validateUserId(userId: number): Observable<any> {
+    const url = `${this.baseUrl}/validate-user/${userId}`;
+    return this.http.get(url, { headers: this.headers }).pipe(
+      catchError(this.handleError('validating user ID'))
+    );
+  }
+
+  /**
    * Logs symptoms for a user.
    * @param symptomData Object containing symptom data (pain level, stress, etc.)
    * @param userId The ID of the user logging symptoms
-   * @returns Observable for API response
+   * @returns Observable for API response.
    */
   logSymptoms(symptomData: any, userId: number): Observable<any> {
     const url = `${this.baseUrl}/log-symptoms`;
@@ -28,8 +51,8 @@ export class ApiService {
 
   /**
    * Retrieves all logged symptoms for the specified user.
-   * @param userId The ID of the user to retrieve logs for
-   * @returns Observable for logged symptom data
+   * @param userId The ID of the user to retrieve logs for.
+   * @returns Observable for logged symptom data.
    */
   getSymptomLogs(userId: number): Observable<any> {
     const url = `${this.baseUrl}/symptom-logs?user_id=${userId}`;
@@ -39,21 +62,9 @@ export class ApiService {
   }
 
   /**
-   * Validates a user ID to ensure it exists in the system.
-   * @param userId The ID of the user to validate
-   * @returns Observable for validation response
-   */
-  validateUserId(userId: number): Observable<any> {
-    const url = `${this.baseUrl}/validate-user/${userId}`;
-    return this.http.get(url, { headers: this.headers }).pipe(
-      catchError(this.handleError('validating user ID'))
-    );
-  }
-
-  /**
    * Fetches trend analysis insights from CHIIP.
-   * @param userId The ID of the user to analyze logs for
-   * @returns Observable for bot analysis response
+   * @param userId The ID of the user to analyze logs for.
+   * @returns Observable for bot analysis response.
    */
   getBotAnalysis(userId: number): Observable<any> {
     const url = `${this.baseUrl}/bot-analysis`;
@@ -64,22 +75,9 @@ export class ApiService {
   }
 
   /**
-   * Sends a user message to CHIIP and retrieves a response.
-   * @param userMessage The message from the user to the bot
-   * @returns Observable with the bot's response
-   */
-  getBotResponse(userMessage: string): Observable<any> {
-    const url = `${this.baseUrl}/bot-response`;
-    const payload = { message: userMessage };
-    return this.http.post(url, payload, { headers: this.headers }).pipe(
-      catchError(this.handleError('sending bot message'))
-    );
-  }
-
-  /**
    * Generic error handler for API requests.
-   * @param operation Description of the failed operation
-   * @returns Observable that throws an error
+   * @param operation Description of the failed operation.
+   * @returns Observable that throws an error.
    */
   private handleError(operation: string) {
     return (error: any): Observable<never> => {
@@ -89,4 +87,3 @@ export class ApiService {
     };
   }
 }
-
