@@ -6,18 +6,18 @@ class User(db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.String(10), unique=True, nullable=False)  # Unique 5-digit user ID
+    user_id = db.Column(db.String(10), unique=True, nullable=False)  # Unique 5-6 digit user ID
     created_at = db.Column(db.DateTime, default=datetime.utcnow)  # Timestamp for user creation
 
     def __repr__(self):
         return f'<User {self.user_id}>'
 
-# No changes needed for SymptomLog, Prediction, or TrendAnalysis models
+# Updated SymptomLog model to use user_id as foreign key
 class SymptomLog(db.Model):
     __tablename__ = 'symptom_logs'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.String(10), db.ForeignKey('users.user_id'), nullable=False)
 
     pain_level = db.Column(db.Integer, nullable=False)
     stress_level = db.Column(db.Integer, nullable=False)
@@ -41,7 +41,7 @@ class Prediction(db.Model):
     __tablename__ = 'predictions'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.String(10), db.ForeignKey('users.user_id'), nullable=False)
     prediction_result = db.Column(db.String(50), nullable=False)
     predicted_at = db.Column(db.DateTime, default=datetime.utcnow)
     additional_info = db.Column(db.String(500), nullable=True)
@@ -55,7 +55,7 @@ class TrendAnalysis(db.Model):
     __tablename__ = 'trend_analysis'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.String(10), db.ForeignKey('users.user_id'), nullable=False)
     analysis_summary = db.Column(db.String(1000), nullable=False)
     generated_at = db.Column(db.DateTime, default=datetime.utcnow)
 
