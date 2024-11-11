@@ -14,60 +14,35 @@ import { ApiService } from './services/api.service';
 })
 export class AppComponent implements OnInit {
   title = 'ReMission - Your IBD Management Companion';
-  userId: number | null = null;
-  userIdInput: string = '';
+  userId: string | null = null;
   userIdError: string = '';
 
   constructor(private apiService: ApiService) {}
 
   ngOnInit(): void {
-    this.promptForUserId();
+    this.autoAssignUserId();
   }
 
   /**
-   * Prompts the user to enter or generate a User ID.
+   * Automatically assigns a User ID when the app loads.
    */
-  promptForUserId(): void {
-    this.userId = null; // Reset User ID on load
-  }
-
-  /**
-   * Generates a new User ID by calling the backend.
-   */
-  generateNewUserId(): void {
-    this.apiService.createUser().subscribe(
+  autoAssignUserId(): void {
+    this.apiService.autoAssignUser().subscribe(
       (response: any) => {
-        this.userIdInput = response.user_id.toString(); // Assuming API returns { user_id: number }
-        alert(`New User ID Generated: ${this.userIdInput}. Please save it!`);
-        this.userIdError = ''; // Clear error message upon success
+        this.userId = response.user_id;
+        console.log(`User ID assigned: ${this.userId}`);
       },
       (error: any) => {
-        this.userIdError = 'Failed to generate User ID. Try again later.';
-        console.error('Error creating User ID:', error);
+        this.userIdError = 'Failed to assign User ID. Please try refreshing.';
+        console.error('Error auto-assigning User ID:', error);
       }
     );
   }
 
   /**
-   * Confirms the entered User ID by validating it with the backend.
+   * Logs the User ID to display it on the dashboard.
    */
-  confirmUserId(): void {
-    if (this.userIdInput) {
-      const inputId = parseInt(this.userIdInput, 10);
-      this.apiService.validateUserId(inputId).subscribe(
-        (response: any) => {
-          this.userId = inputId; // Set the confirmed User ID
-          console.log(`User ID validated: ${this.userId}`);
-          this.userIdError = ''; // Clear error message upon success
-        },
-        (error: any) => {
-          this.userIdError = 'Invalid User ID. Please try again.';
-          console.error('Error validating User ID:', error);
-        }
-      );
-    } else {
-      this.userIdError = 'Please enter or generate a valid User ID.';
-    }
+  displayUserId(): string {
+    return this.userId || 'Not assigned yet.';
   }
 }
-
