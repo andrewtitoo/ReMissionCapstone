@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from datetime import datetime
+import random
 from .models import User, SymptomLog
 from . import db
 
@@ -10,24 +11,44 @@ bp = Blueprint('api', __name__)
 @bp.route('/generate-user', methods=['POST'])
 def generate_user():
     """
-    Generate a new user and return their user_id.
+    Generate a new user with a unique user_id and return their user_id.
     """
     try:
-        new_user = User()  # Simply create a new user instance; ID will auto-increment
+        # Generate a unique 6-digit user ID
+        user_id = str(random.randint(100000, 999999))
+        while User.query.filter_by(user_id=user_id).first():
+            user_id = str(random.randint(100000, 999999))  # Ensure uniqueness
+
+        new_user = User(user_id=user_id)
         db.session.add(new_user)
         db.session.commit()
-        return jsonify({"message": "User created successfully", "user_id": new_user.id}), 201
+        return jsonify({"message": "User created successfully", "user_id": new_user.user_id}), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": "Database error: Unable to create user"}), 500
 
-# ---------------------- Symptom Logging and Retrieval ----------------------
+# ---------------------- Validate User ID ----------------------
+
+@bp.route('/validate-user/<string:user_id>', methods=['GET'])
+def validate_user(user_id):
+    """
+    Validate if the provided user_id exists.
+    """
+    try:
+        user = User.query.filter_by(user_id=user_id).first()
+        if user:
+            return jsonify({"message": "User ID is valid"}), 200
+        else:
+            return jsonify({"error": "User ID not found"}), 404
+    except Exception as e:
+        return jsonify({"error": "Database error: Unable to validate user ID"}), 500
+
+# ---------------------- Symptom Logging ----------------------
 
 @bp.route('/log-symptoms', methods=['POST'])
 def log_symptoms():
     """
-    Log symptoms for a user including pain level, stress level, sleep hours,
-    exercise, and medication information.
+    Log symptoms for a user.
     """
     data = request.get_json()
     user_id = data.get('user_id')
@@ -39,6 +60,11 @@ def log_symptoms():
         return jsonify({"error": "All symptom fields are required"}), 400
 
     try:
+        # Ensure the user exists
+        user = User.query.filter_by(user_id=user_id).first()
+        if not user:
+            return jsonify({"error": "Invalid User ID"}), 404
+
         new_log = SymptomLog(
             user_id=user_id,
             pain_level=data['pain_level'],
@@ -56,6 +82,8 @@ def log_symptoms():
         db.session.rollback()
         return jsonify({"error": "Database error: Unable to log symptoms"}), 500
 
+# ---------------------- Retrieve Symptom Logs ----------------------
+
 @bp.route('/symptom-logs', methods=['GET'])
 def get_symptom_logs():
     user_id = request.args.get('user_id')
@@ -63,6 +91,11 @@ def get_symptom_logs():
         return jsonify({"error": "User ID is required"}), 400
 
     try:
+        # Ensure the user exists
+        user = User.query.filter_by(user_id=user_id).first()
+        if not user:
+            return jsonify({"error": "Invalid User ID"}), 404
+
         symptom_logs = SymptomLog.query.filter_by(user_id=user_id).all()
         response_data = [
             {
@@ -80,6 +113,7 @@ def get_symptom_logs():
         return jsonify(response_data), 200
     except Exception as e:
         return jsonify({"error": "Database error: Unable to fetch symptom logs"}), 500
+
 
 # --------------------- Bot Analysis ---------------------------
 
