@@ -1,5 +1,5 @@
 import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { FormsModule } from '@angular/forms';
@@ -8,13 +8,13 @@ import { ApiService } from './services/api.service';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, NavbarComponent, FormsModule],
+  imports: [RouterOutlet, NavbarComponent, FormsModule, CommonModule], // Ensure CommonModule is included for *ngIf
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
   title = 'ReMission - Your IBD Management Companion';
-  userId: string | null = null;
+  userId: string = ''; // Initialize as empty string to avoid null issues
   userIdError: string = '';
 
   constructor(
@@ -51,7 +51,7 @@ export class AppComponent implements OnInit {
   autoAssignUserId(): void {
     this.apiService.autoAssignUser().subscribe(
       (response: any) => {
-        this.userId = response.user_id;
+        this.userId = response.user_id || ''; // Ensure it's a string
         if (isPlatformBrowser(this.platformId)) {
           localStorage.setItem('user_id', this.userId);
         }
