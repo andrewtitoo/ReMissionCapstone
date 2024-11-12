@@ -3,19 +3,30 @@
   max-width: 600px;
   margin: 0 auto;
   text-align: center;
-  font-family: 'Arial, sans-serif';
-  color: #333;  /* Ensure text is visible on a white background */
+  font-family: 'Lato', sans-serif;
+  color: #004d40; /* Calming green for text */
+  background: linear-gradient(135deg, #e0f7fa, #ffffff);
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 1s ease-in-out;
 }
 
 h1 {
-  color: #3a6ea5; /* Softer blue for a friendlier tone */
-  font-size: 26px;
-  margin-bottom: 20px;
+  color: #00796b; /* Friendly teal tone */
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.acronym {
+  font-size: 14px;
+  color: #00796b;
+  margin-top: -10px;
+  font-style: italic;
 }
 
 .chat-box {
-  height: 400px; /* Slightly increased height for more messages */
-  border: 2px solid #cfd8dc;
+  height: 350px;
+  border: 2px solid #b2dfdb;
   padding: 15px;
   overflow-y: auto;
   margin-top: 20px;
@@ -28,35 +39,56 @@ h1 {
   text-align: left;
   margin: 10px 0;
   padding: 10px;
-  background-color: #e1f5fe; /* Slightly different blue for contrast */
-  color: #0277bd; /* Text color to align with theme */
+  background-color: #e1f5fe; /* Friendly blue */
+  color: #0277bd; /* Text color for CHIIP */
   border-radius: 12px;
   display: inline-block;
   max-width: 75%;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-  animation: fadeIn 0.5s ease-in-out;
 }
 
 .user-message {
   text-align: right;
   margin: 10px 0;
   padding: 10px;
-  background-color: #c8e6c9;
+  background-color: #c8e6c9; /* Light green for user */
   color: #2e7d32;
   border-radius: 12px;
   display: inline-block;
   max-width: 75%;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-  animation: fadeIn 0.5s ease-in-out;
+}
+
+.user-input {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+input[type="text"] {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #b2dfdb;
+  font-size: 16px;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #00838f;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+button:hover {
+  background-color: #005662;
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
