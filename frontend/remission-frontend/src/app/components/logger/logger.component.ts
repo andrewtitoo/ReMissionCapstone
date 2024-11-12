@@ -25,7 +25,6 @@ export class LoggerComponent {
   successMessage: string = '';
   errorMessage: string = '';
 
-  // Initialize exerciseTypes with correct types
   exerciseTypes: ExerciseType[] = [
     { name: 'Cardio', selected: false },
     { name: 'Strength', selected: false },
@@ -38,11 +37,11 @@ export class LoggerComponent {
   onSubmit(): void {
     if (!this.isFormValid()) return;
 
-    const userId = parseInt(localStorage.getItem('user_id') || '0', 10); // Retrieve user ID dynamically
+    const userId = localStorage.getItem('user_id'); // Retrieve user ID as string
 
     if (!userId) {
       this.errorMessage = 'User ID is missing. Please refresh the page or contact support.';
-      return; // Prevent further execution if user ID is missing
+      return;
     }
 
     const loggedData = {
