@@ -6,43 +6,38 @@ from . import db
 
 bp = Blueprint('api', __name__)
 
-# ---------------------- Auto-Assign User ID ----------------------
+# ---------------------- Validate or Assign User ID ----------------------
 
-@bp.route('/auto-assign-user', methods=['GET'])
+@bp.route('/auto-assign-user', methods=['POST'])
 def auto_assign_user():
     """
-    Automatically assign a unique user ID when the app is accessed.
+    Validate or create a new User ID.
     """
     try:
+        user_id = request.json.get('user_id')
+
+        if user_id:
+            # Validate existing user_id
+            user = User.query.filter_by(user_id=user_id).first()
+            if user:
+                return jsonify({"message": "User ID validated", "user_id": user.user_id}), 200
+            return jsonify({"error": "Invalid User ID provided"}), 404
+
+        # Create new user if no valid ID provided
         user_id = str(random.randint(100000, 999999))
         while User.query.filter_by(user_id=user_id).first():
             user_id = str(random.randint(100000, 999999))
+
         new_user = User(user_id=user_id)
         db.session.add(new_user)
         db.session.commit()
-        return jsonify({"message": "User ID assigned successfully", "user_id": new_user.user_id}), 200
+        return jsonify({"message": "User ID assigned successfully", "user_id": new_user.user_id}), 201
+
     except Exception as e:
         db.session.rollback()
         print(f"Error during user ID assignment: {e}")
         return jsonify({"error": f"Database error: Unable to assign user ID ({str(e)})"}), 500
 
-
-# ---------------------- Validate User ID ----------------------
-
-@bp.route('/validate-user/<string:user_id>', methods=['GET'])
-def validate_user(user_id):
-    """
-    Validate if the provided user_id exists.
-    """
-    try:
-        user = User.query.filter_by(user_id=user_id).first()
-        if user:
-            return jsonify({"message": "User ID is valid"}), 200
-        else:
-            return jsonify({"error": "User ID not found"}), 404
-    except Exception as e:
-        print(f"Error validating user ID: {e}")
-        return jsonify({"error": f"Database error: Unable to validate user ID ({str(e)})"}), 500
 
 # ---------------------- Symptom Logging ----------------------
 
@@ -55,16 +50,16 @@ def log_symptoms():
     user_id = data.get('user_id')
 
     if not user_id:
-        return jsonify({"error": "User ID is required"}), 400
+        return jsonify({"error": "User ID is required."}), 400
 
     required_fields = ['pain_level', 'stress_level', 'sleep_hours', 'exercise_done', 'took_medication']
     if not all(field in data for field in required_fields):
-        return jsonify({"error": "All symptom fields are required"}), 400
+        return jsonify({"error": "All symptom fields are required."}), 400
 
     try:
         user = User.query.filter_by(user_id=user_id).first()
         if not user:
-            return jsonify({"error": "Invalid User ID"}), 404
+            return jsonify({"error": "Invalid User ID."}), 404
 
         new_log = SymptomLog(
             user_id=user_id,
@@ -78,7 +73,8 @@ def log_symptoms():
         )
         db.session.add(new_log)
         db.session.commit()
-        return jsonify({"message": "Symptom log created successfully"}), 201
+        return jsonify({"message": "Symptom log created successfully."}), 201
+
     except Exception as e:
         db.session.rollback()
         print(f"Error during symptom logging: {e}")
