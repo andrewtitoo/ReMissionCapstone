@@ -134,9 +134,6 @@ def get_symptom_logs():
 
 @bp.route('/bot-analysis', methods=['POST'])
 def bot_analysis():
-    """
-    Analyze user's symptom logs and provide insights based on the latest log.
-    """
     try:
         data = request.get_json()
         user_id = data.get('user_id')
@@ -149,19 +146,18 @@ def bot_analysis():
         if not latest_log:
             return jsonify({"error": "No symptom logs available for analysis."}), 404
 
-        # Flare-up determination
+        # Determine flare-up based on conditions
         flare = (
-                latest_log.pain_level >= 7
-                or (latest_log.pain_level >= 5 and (latest_log.sleep_hours < 7 or not latest_log.took_medication or latest_log.stress_level > 5))
-                or (latest_log.pain_level >= 2 and sum([
-            latest_log.sleep_hours < 7,
-            not latest_log.took_medication,
-            not latest_log.exercise_done,
-            latest_log.stress_level > 6
-        ]) >= 3)
+                latest_log.pain_level >= 7 or
+                (latest_log.pain_level >= 5 and (latest_log.sleep_hours < 7 or not latest_log.took_medication or latest_log.stress_level > 5)) or
+                (latest_log.pain_level >= 2 and sum([
+                    latest_log.sleep_hours < 7,
+                    not latest_log.took_medication,
+                    not latest_log.exercise_done,
+                    latest_log.stress_level > 6
+                ]) >= 3)
         )
 
-        # Generate Insights
         insights = []
         if flare:
             insights.append("Your recent symptom logs indicate a potential flare-up. Please take care of yourself.")
