@@ -26,11 +26,13 @@ export class AppComponent implements OnInit {
   /**
    * Automatically assigns a User ID when the app loads.
    */
+
   autoAssignUserId(): void {
     this.apiService.autoAssignUser().subscribe(
       (response: any) => {
         this.userId = response.user_id;
-        console.log(`User ID assigned: ${this.userId}`);
+        localStorage.setItem('user_id', this.userId ?? ''); // Ensure it's always a string
+        console.log(`User ID assigned and stored: ${this.userId}`);
       },
       (error: any) => {
         this.userIdError = 'Failed to assign User ID. Please try refreshing.';

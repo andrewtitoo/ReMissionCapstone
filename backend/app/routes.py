@@ -14,21 +14,18 @@ def auto_assign_user():
     Automatically assign a unique user ID when the app is accessed.
     """
     try:
-        # Generate a unique 6-digit user ID
         user_id = str(random.randint(100000, 999999))
         while User.query.filter_by(user_id=user_id).first():
-            user_id = str(random.randint(100000, 999999))  # Ensure uniqueness
-
-        # Create the user and commit to the database
+            user_id = str(random.randint(100000, 999999))
         new_user = User(user_id=user_id)
         db.session.add(new_user)
         db.session.commit()
-
         return jsonify({"message": "User ID assigned successfully", "user_id": new_user.user_id}), 200
     except Exception as e:
         db.session.rollback()
         print(f"Error during user ID assignment: {e}")
         return jsonify({"error": f"Database error: Unable to assign user ID ({str(e)})"}), 500
+
 
 # ---------------------- Validate User ID ----------------------
 
