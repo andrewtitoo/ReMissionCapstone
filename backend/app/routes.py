@@ -45,7 +45,7 @@ def validate_user(user_id):
             return jsonify({"error": "User ID not found"}), 404
     except Exception as e:
         print(f"Error validating user ID: {e}")
-        return jsonify({"error": "Database error: Unable to validate user ID"}), 500
+        return jsonify({"error": f"Database error: Unable to validate user ID ({str(e)})"}), 500
 
 # ---------------------- Symptom Logging ----------------------
 
@@ -56,6 +56,7 @@ def log_symptoms():
     """
     data = request.get_json()
     user_id = data.get('user_id')
+
     if not user_id:
         return jsonify({"error": "User ID is required"}), 400
 
@@ -64,7 +65,6 @@ def log_symptoms():
         return jsonify({"error": "All symptom fields are required"}), 400
 
     try:
-        # Ensure the user exists
         user = User.query.filter_by(user_id=user_id).first()
         if not user:
             return jsonify({"error": "Invalid User ID"}), 404
@@ -85,18 +85,18 @@ def log_symptoms():
     except Exception as e:
         db.session.rollback()
         print(f"Error during symptom logging: {e}")
-        return jsonify({"error": "Database error: Unable to log symptoms"}), 500
+        return jsonify({"error": f"Database error: Unable to log symptoms ({str(e)})"}), 500
 
 # ---------------------- Retrieve Symptom Logs ----------------------
 
 @bp.route('/symptom-logs', methods=['GET'])
 def get_symptom_logs():
     user_id = request.args.get('user_id')
+
     if not user_id:
         return jsonify({"error": "User ID is required"}), 400
 
     try:
-        # Ensure the user exists
         user = User.query.filter_by(user_id=user_id).first()
         if not user:
             return jsonify({"error": "Invalid User ID"}), 404
@@ -118,7 +118,7 @@ def get_symptom_logs():
         return jsonify(response_data), 200
     except Exception as e:
         print(f"Error retrieving symptom logs: {e}")
-        return jsonify({"error": "Database error: Unable to fetch symptom logs"}), 500
+        return jsonify({"error": f"Database error: Unable to fetch symptom logs ({str(e)})"}), 500
 
 # --------------------- Bot Analysis ---------------------------
 
@@ -139,7 +139,6 @@ def bot_analysis():
         if not latest_log:
             return jsonify({"error": "No symptom logs available for analysis"}), 404
 
-        # Classify based on symptom logs
         flare = 0
         if latest_log.pain_level >= 7:
             flare = 1
