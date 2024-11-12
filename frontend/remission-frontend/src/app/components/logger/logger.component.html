@@ -1,7 +1,6 @@
 <div class="logger-container">
   <h1>Log Your Symptoms</h1>
   <form (ngSubmit)="onSubmit()">
-
     <!-- Pain Level -->
     <div class="form-group">
       <label for="painLevel">Pain Level (1-10)</label>
@@ -26,8 +25,11 @@
     <!-- Exercise -->
     <div class="form-group">
       <label>Did you exercise today?</label>
-      <input type="checkbox" [(ngModel)]="exerciseDone" name="exerciseDone" />
-      <span *ngIf="exerciseDone">Yes</span>
+      <div class="toggle-switch">
+        <input type="checkbox" [(ngModel)]="exerciseDone" name="exerciseDone" />
+        <span *ngIf="exerciseDone">Yes</span>
+        <span *ngIf="!exerciseDone">No</span>
+      </div>
 
       <!-- If exercised, what kind? -->
       <div *ngIf="exerciseDone" class="exercise-types">
@@ -42,8 +44,11 @@
     <!-- Medication -->
     <div class="form-group">
       <label>Did you take your medication today?</label>
-      <input type="checkbox" [(ngModel)]="tookMedication" name="tookMedication" />
-      <span *ngIf="tookMedication">Yes</span>
+      <div class="toggle-switch">
+        <input type="checkbox" [(ngModel)]="tookMedication" name="tookMedication" />
+        <span *ngIf="tookMedication">Yes</span>
+        <span *ngIf="!tookMedication">No</span>
+      </div>
     </div>
 
     <!-- Submit Button -->
