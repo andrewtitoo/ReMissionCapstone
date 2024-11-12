@@ -78,7 +78,8 @@ def log_symptoms():
     except Exception as e:
         db.session.rollback()
         print(f"Error during symptom logging: {e}")
-        return jsonify({"error": f"Database error: Unable to log symptoms ({str(e)})"}), 500
+        return jsonify({"error": f"Database error: Unable to log symptoms ({str(e)})"}), 500# ---------------------- Retrieve Symptom Logs ----------------------
+
 
 # ---------------------- Retrieve Symptom Logs ----------------------
 
@@ -87,12 +88,12 @@ def get_symptom_logs():
     user_id = request.args.get('user_id')
 
     if not user_id:
-        return jsonify({"error": "User ID is required"}), 400
+        return jsonify({"error": "User ID is required."}), 400
 
     try:
         user = User.query.filter_by(user_id=user_id).first()
         if not user:
-            return jsonify({"error": "Invalid User ID"}), 404
+            return jsonify({"error": "Invalid User ID."}), 404
 
         symptom_logs = SymptomLog.query.filter_by(user_id=user_id).all()
         response_data = [
@@ -109,11 +110,13 @@ def get_symptom_logs():
             for log in symptom_logs
         ]
         return jsonify(response_data), 200
+
     except Exception as e:
         print(f"Error retrieving symptom logs: {e}")
         return jsonify({"error": f"Database error: Unable to fetch symptom logs ({str(e)})"}), 500
 
-# --------------------- Bot Analysis ---------------------------
+
+# ---------------------- Bot Analysis ----------------------
 
 @bp.route('/bot-analysis', methods=['POST'])
 def bot_analysis():
@@ -125,28 +128,24 @@ def bot_analysis():
         user_id = data.get('user_id')
 
         if not user_id:
-            return jsonify({"error": "User ID is required"}), 400
+            return jsonify({"error": "User ID is required."}), 400
 
         latest_log = SymptomLog.query.filter_by(user_id=user_id).order_by(SymptomLog.logged_at.desc()).first()
 
         if not latest_log:
-            return jsonify({"error": "No symptom logs available for analysis"}), 404
+            return jsonify({"error": "No symptom logs available for analysis."}), 404
 
-        flare = 0
-        if latest_log.pain_level >= 7:
-            flare = 1
-        elif latest_log.pain_level >= 5 and (
-                latest_log.sleep_hours < 7 or
-                latest_log.took_medication == 0 or
-                latest_log.stress_level > 5):
-            flare = 1
-        elif latest_log.pain_level >= 2 and sum([
+        # Determine if a flare-up has occurred
+        flare = (
+                latest_log.pain_level >= 7
+                or (latest_log.pain_level >= 5 and (latest_log.sleep_hours < 7 or not latest_log.took_medication or latest_log.stress_level > 5))
+                or (latest_log.pain_level >= 2 and sum([
             latest_log.sleep_hours < 7,
-            latest_log.took_medication == 0,
-            latest_log.exercise_done == 0,
+            not latest_log.took_medication,
+            not latest_log.exercise_done,
             latest_log.stress_level > 6
-        ]) >= 3:
-            flare = 1
+        ]) >= 3)
+        )
 
         # Generate insights
         insights = []
@@ -165,11 +164,8 @@ def bot_analysis():
         else:
             insights.append("Fantastic! You seem to be in remission. Keep up your healthy habits!")
 
-        return jsonify({
-            "classification": "flare" if flare else "remission",
-            "insights": insights
-        }), 200
+        return jsonify({"classification": "flare" if flare else "remission", "insights": insights}), 200
 
     except Exception as e:
         print(f"Error analyzing logs: {e}")
-        return jsonify({"error": "Unable to analyze symptom logs"}), 500
+        return jsonify({"error": f"Unable to analyze symptom logs ({str(e)})"}), 500
