@@ -35,9 +35,12 @@ export class LoggerComponent {
   constructor(private apiService: ApiService) {}
 
   onSubmit(): void {
-    if (!this.isFormValid()) return;
+    if (!this.isFormValid()) {
+      this.errorMessage = 'Please fill out all fields correctly.';
+      return;
+    }
 
-    const userId = localStorage.getItem('user_id'); // Retrieve user ID as string
+    const userId = localStorage.getItem('user_id');
 
     if (!userId) {
       this.errorMessage = 'User ID is missing. Please refresh the page or contact support.';
@@ -49,18 +52,22 @@ export class LoggerComponent {
       stress_level: this.stressLevel,
       sleep_hours: this.sleepHours,
       exercise_done: this.exerciseDone,
-      exercise_types: this.exerciseTypes.filter((e) => e.selected).map((e) => e.name),
-      took_medication: this.tookMedication
+      took_medication: this.tookMedication,
+      // Only include exercise_types if any are selected
+      exercise_type: this.exerciseTypes.filter((e) => e.selected).map((e) => e.name).join(', ')
     };
 
+    console.log('Submitting logged data:', loggedData); // Debugging log
+
     this.apiService.logSymptoms(loggedData, userId).subscribe(
-      () => {
+      (response: any) => {
+        console.log('Logging response:', response); // Debugging log
         this.successMessage = 'Your symptoms have been logged successfully!';
         this.resetForm();
       },
       (error: any) => {
-        console.error('Error logging symptoms:', error);
-        this.errorMessage = 'An error occurred while logging your symptoms. Please try again later.';
+        console.error('Error logging symptoms:', error); // Detailed error
+        this.errorMessage = error?.error?.message || 'An error occurred while logging your symptoms. Please try again later.';
       }
     );
   }

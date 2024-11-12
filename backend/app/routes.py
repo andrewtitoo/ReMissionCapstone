@@ -78,7 +78,7 @@ def log_symptoms():
     except Exception as e:
         db.session.rollback()
         print(f"Error during symptom logging: {e}")
-        return jsonify({"error": f"Database error: Unable to log symptoms ({str(e)})"}), 500# ---------------------- Retrieve Symptom Logs ----------------------
+        return jsonify({"error": f"Database error: Unable to log symptoms ({str(e)})"}), 500
 
 
 # ---------------------- Retrieve Symptom Logs ----------------------
