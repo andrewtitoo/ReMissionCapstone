@@ -61,16 +61,18 @@ def log_symptoms():
         if not user:
             return jsonify({"error": "Invalid User ID."}), 404
 
+        # Remove any unnecessary fields like diet_notes, additional_notes
         new_log = SymptomLog(
             user_id=user_id,
             pain_level=data['pain_level'],
             stress_level=data['stress_level'],
             sleep_hours=data['sleep_hours'],
             exercise_done=data['exercise_done'],
-            exercise_type=data.get('exercise_type'),
+            exercise_type=",".join(data.get('exercise_types', [])),  # Join selected exercise types
             took_medication=data['took_medication'],
             logged_at=datetime.utcnow()
         )
+
         db.session.add(new_log)
         db.session.commit()
         return jsonify({"message": "Symptom log created successfully."}), 201
@@ -95,17 +97,16 @@ def get_symptom_logs():
         if not user:
             return jsonify({"error": "Invalid User ID."}), 404
 
-        symptom_logs = SymptomLog.query.filter_by(user_id=user_id).all()
+        symptom_logs = SymptomLog.query.filter_by(user_id=user_id).order_by(SymptomLog.logged_at.desc()).all()
         response_data = [
             {
-                "id": log.id,
+                "logged_at": log.logged_at.strftime('%Y-%m-%d %H:%M:%S'),
                 "pain_level": log.pain_level,
                 "stress_level": log.stress_level,
                 "sleep_hours": log.sleep_hours,
                 "exercise_done": log.exercise_done,
-                "exercise_type": log.exercise_type,
-                "took_medication": log.took_medication,
-                "logged_at": log.logged_at
+                "exercise_type": log.exercise_type.split(',') if log.exercise_type else [],
+                "took_medication": log.took_medication
             }
             for log in symptom_logs
         ]
@@ -114,7 +115,6 @@ def get_symptom_logs():
     except Exception as e:
         print(f"Error retrieving symptom logs: {e}")
         return jsonify({"error": f"Database error: Unable to fetch symptom logs ({str(e)})"}), 500
-
 
 # ---------------------- Bot Analysis ----------------------
 
@@ -135,7 +135,7 @@ def bot_analysis():
         if not latest_log:
             return jsonify({"error": "No symptom logs available for analysis."}), 404
 
-        # Determine if a flare-up has occurred
+        # Flare-up determination
         flare = (
                 latest_log.pain_level >= 7
                 or (latest_log.pain_level >= 5 and (latest_log.sleep_hours < 7 or not latest_log.took_medication or latest_log.stress_level > 5))
@@ -147,7 +147,7 @@ def bot_analysis():
         ]) >= 3)
         )
 
-        # Generate insights
+        # Generate Insights
         insights = []
         if flare:
             insights.append("Your recent symptom logs indicate a potential flare-up. Please take care of yourself.")

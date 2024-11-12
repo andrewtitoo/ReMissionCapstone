@@ -49,9 +49,11 @@ export class LoggerComponent {
       stress_level: this.stressLevel,
       sleep_hours: this.sleepHours,
       exercise_done: this.exerciseDone,
-      exercise_types: this.exerciseTypes.filter((e) => e.selected).map((e) => e.name),
-      took_medication: this.tookMedication
+      exercise_types: this.exerciseTypes.filter((e) => e.selected).map((e) => e.name), // Ensure this aligns with backend expectations
+      took_medication: this.tookMedication,
+      user_id: userId  // Attach user_id here if required by backend payload structure
     };
+
 
     this.apiService.logSymptoms(loggedData, userId).subscribe(
       () => {
