@@ -1,5 +1,9 @@
 <div class="bot-container">
-  <h1>Welcome to CHIIP - Your IBD Companion</h1>
+  <h1>Meet CHIIP</h1>
+  <div class="acronym">
+    <strong>CHIIP</strong> stands for <br>
+    <em>Compassionate Health Insights for IBD Patients</em>.
+  </div>
 
   <div class="chat-box">
     <div *ngFor="let message of messages; let i = index"
@@ -10,8 +14,7 @@
 
   <!-- Input area for user interaction -->
   <div class="user-input">
-    <input type="text" [(ngModel)]="userMessage" placeholder="Type a message to CHIIP..."
-           (keyup.enter)="sendMessage()" />
+    <input type="text" [(ngModel)]="userMessage" placeholder="Say something to CHIIP..." (keyup.enter)="sendMessage()" />
     <button (click)="sendMessage()">Send</button>
   </div>
 </div>
