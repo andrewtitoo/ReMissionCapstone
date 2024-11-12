@@ -34,7 +34,7 @@ export class AppComponent implements OnInit {
       this.userId = storedUserId;
       console.log(`Existing User ID loaded: ${this.userId}`);
     } else {
-      this.autoAssignUserId(); // Only assign if not already present
+      this.autoAssignUserId(); // Fetch from backend only when not present.
     }
   }
 
@@ -45,7 +45,7 @@ export class AppComponent implements OnInit {
     this.apiService.autoAssignUser().subscribe(
       (response: any) => {
         this.userId = response.user_id;
-        localStorage.setItem('user_id', this.userId); // Save to localStorage
+        localStorage.setItem('user_id', this.userId ?? ''); // Ensure value is a string
         console.log(`New User ID assigned and stored: ${this.userId}`);
       },
       (error: any) => {
