@@ -98,18 +98,32 @@ def get_symptom_logs():
             return jsonify({"error": "Invalid User ID."}), 404
 
         symptom_logs = SymptomLog.query.filter_by(user_id=user_id).order_by(SymptomLog.logged_at.desc()).all()
-        response_data = [
-            {
+        response_data = []
+
+        for log in symptom_logs:
+            # Flare-up logic
+            flare = (
+                    log.pain_level >= 7 or
+                    (log.pain_level >= 5 and (log.sleep_hours < 7 or not log.took_medication or log.stress_level > 5)) or
+                    (log.pain_level >= 2 and sum([
+                        log.sleep_hours < 7,
+                        not log.took_medication,
+                        not log.exercise_done,
+                        log.stress_level > 6
+                    ]) >= 3)
+            )
+
+            response_data.append({
                 "logged_at": log.logged_at.strftime('%Y-%m-%d %H:%M:%S'),
                 "pain_level": log.pain_level,
                 "stress_level": log.stress_level,
                 "sleep_hours": log.sleep_hours,
                 "exercise_done": log.exercise_done,
                 "exercise_type": log.exercise_type.split(',') if log.exercise_type else [],
-                "took_medication": log.took_medication
-            }
-            for log in symptom_logs
-        ]
+                "took_medication": log.took_medication,
+                "flare_up": 1 if flare else 0  # Include flare_up for chart logic
+            })
+
         return jsonify(response_data), 200
 
     except Exception as e:
