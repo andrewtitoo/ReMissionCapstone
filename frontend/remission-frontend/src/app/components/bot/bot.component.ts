@@ -13,7 +13,7 @@ import { HttpClientModule } from '@angular/common/http'; // Import HttpClientMod
 })
 export class BotComponent implements OnInit {
   messages: string[] = [];
-  userMessage: string = '';  // Track user input for the chat
+  userMessage: string = ''; // Track user input for the chat
 
   constructor(private apiService: ApiService) {}
 
@@ -25,7 +25,12 @@ export class BotComponent implements OnInit {
    * Fetches initial insights from CHIIP based on the latest symptom data.
    */
   sendInitialInsights(): void {
-    const userId = 1; // Hardcoded user ID for MVP
+    const userId = localStorage.getItem('user_id'); // Retrieve user ID from localStorage as string
+
+    if (!userId) {
+      this.messages.push('User ID is missing. Please refresh the app.');
+      return;
+    }
 
     this.apiService.getBotAnalysis(userId).subscribe(
       (data: { analysis_summary?: string }) => {
@@ -48,12 +53,12 @@ export class BotComponent implements OnInit {
    */
   sendMessage(): void {
     if (this.userMessage.trim() !== '') {
-      this.messages.push(`You: ${this.userMessage}`);  // Display user message in the chat
+      this.messages.push(`You: ${this.userMessage}`); // Display user message in the chat
 
       this.apiService.getBotResponse(this.userMessage).subscribe(
         (data: { response?: string }) => {
           if (data && data.response) {
-            this.messages.push(`CHIIP: ${data.response}`);  // Display CHIIP's response
+            this.messages.push(`CHIIP: ${data.response}`); // Display CHIIP's response
           } else {
             this.messages.push('CHIIP: I am here to help. Please log symptoms or ask me about IBD management!');
           }
@@ -64,7 +69,8 @@ export class BotComponent implements OnInit {
         }
       );
 
-      this.userMessage = '';  // Clear input after sending
+      this.userMessage = ''; // Clear input after sending
     }
   }
 }
+
