@@ -41,11 +41,10 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
-    const userId = parseInt(storedUserId, 10);
-    this.fetchAndDisplayCharts(userId);
+    this.fetchAndDisplayCharts(storedUserId);
   }
 
-  fetchAndDisplayCharts(userId: number): void {
+  fetchAndDisplayCharts(userId: string): void {
     this.apiService.getSymptomLogs(userId).subscribe(
       (data: SymptomLog[]) => {
         if (data.length > 0) {
