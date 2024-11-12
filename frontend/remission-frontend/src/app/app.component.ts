@@ -20,19 +20,33 @@ export class AppComponent implements OnInit {
   constructor(private apiService: ApiService) {}
 
   ngOnInit(): void {
-    this.autoAssignUserId();
+    this.initializeUserId();
   }
 
   /**
-   * Automatically assigns a User ID when the app loads.
+   * Initializes the User ID.
+   * Checks localStorage for an existing user_id. If not found, fetches from backend.
    */
+  initializeUserId(): void {
+    const storedUserId = localStorage.getItem('user_id');
 
+    if (storedUserId) {
+      this.userId = storedUserId;
+      console.log(`Existing User ID loaded: ${this.userId}`);
+    } else {
+      this.autoAssignUserId(); // Only assign if not already present
+    }
+  }
+
+  /**
+   * Automatically assigns a new User ID from the backend and stores it.
+   */
   autoAssignUserId(): void {
     this.apiService.autoAssignUser().subscribe(
       (response: any) => {
         this.userId = response.user_id;
-        localStorage.setItem('user_id', this.userId ?? ''); // Ensure it's always a string
-        console.log(`User ID assigned and stored: ${this.userId}`);
+        localStorage.setItem('user_id', this.userId); // Save to localStorage
+        console.log(`New User ID assigned and stored: ${this.userId}`);
       },
       (error: any) => {
         this.userIdError = 'Failed to assign User ID. Please try refreshing.';
