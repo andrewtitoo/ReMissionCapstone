@@ -6,9 +6,8 @@ from . import db
 
 bp = Blueprint('api', __name__)
 
-# ---------------------- Generate User ID ----------------------
+# ---------------------- Auto-Assign User ID ----------------------
 
-@bp.route('/generate-user', methods=['POST'])
 @bp.route('/auto-assign-user', methods=['GET'])
 def auto_assign_user():
     """
@@ -30,7 +29,6 @@ def auto_assign_user():
         db.session.rollback()
         print(f"Error during user ID assignment: {e}")
         return jsonify({"error": f"Database error: Unable to assign user ID ({str(e)})"}), 500
-
 
 # ---------------------- Validate User ID ----------------------
 

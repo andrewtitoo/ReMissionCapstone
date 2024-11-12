@@ -16,9 +16,9 @@ export class ApiService {
    * Automatically assigns a new User ID.
    * @returns Observable containing the assigned User ID.
    */
-  autoAssignUser(): Observable<any> {
+  autoAssignUser(): Observable<{ user_id: string }> {
     const url = `${this.baseUrl}/auto-assign-user`;
-    return this.http.get(url, { headers: this.headers }).pipe(
+    return this.http.get<{ user_id: string }>(url, { headers: this.headers }).pipe(
       catchError(this.handleError('auto-assigning a user ID'))
     );
   }
@@ -28,9 +28,9 @@ export class ApiService {
    * @param userId The User ID to validate.
    * @returns Observable for API response.
    */
-  validateUserId(userId: string): Observable<any> {
+  validateUserId(userId: string): Observable<{ message: string }> {
     const url = `${this.baseUrl}/validate-user/${userId}`;
-    return this.http.get(url, { headers: this.headers }).pipe(
+    return this.http.get<{ message: string }>(url, { headers: this.headers }).pipe(
       catchError(this.handleError('validating the user ID'))
     );
   }
@@ -41,10 +41,10 @@ export class ApiService {
    * @param userId The ID of the user logging symptoms.
    * @returns Observable for API response.
    */
-  logSymptoms(symptomData: any, userId: string): Observable<any> {
+  logSymptoms(symptomData: any, userId: string): Observable<{ message: string }> {
     const url = `${this.baseUrl}/log-symptoms`;
     const payload = { ...symptomData, user_id: userId };
-    return this.http.post(url, payload, { headers: this.headers }).pipe(
+    return this.http.post<{ message: string }>(url, payload, { headers: this.headers }).pipe(
       catchError(this.handleError('logging symptoms'))
     );
   }
@@ -54,9 +54,9 @@ export class ApiService {
    * @param userId The ID of the user to retrieve logs for.
    * @returns Observable for logged symptom data.
    */
-  getSymptomLogs(userId: string): Observable<any> {
+  getSymptomLogs(userId: string): Observable<any[]> {
     const url = `${this.baseUrl}/symptom-logs?user_id=${userId}`;
-    return this.http.get(url, { headers: this.headers }).pipe(
+    return this.http.get<any[]>(url, { headers: this.headers }).pipe(
       catchError(this.handleError('fetching symptom logs'))
     );
   }
@@ -69,7 +69,7 @@ export class ApiService {
   getBotAnalysis(userId: string): Observable<any> {
     const url = `${this.baseUrl}/bot-analysis`;
     const payload = { user_id: userId };
-    return this.http.post(url, payload, { headers: this.headers }).pipe(
+    return this.http.post<any>(url, payload, { headers: this.headers }).pipe(
       catchError(this.handleError('fetching bot analysis'))
     );
   }
@@ -82,7 +82,7 @@ export class ApiService {
   getBotResponse(userMessage: string): Observable<any> {
     const url = `${this.baseUrl}/bot-response`;
     const payload = { message: userMessage };
-    return this.http.post(url, payload, { headers: this.headers }).pipe(
+    return this.http.post<any>(url, payload, { headers: this.headers }).pipe(
       catchError(this.handleError('sending a bot message'))
     );
   }
@@ -96,6 +96,7 @@ export class ApiService {
     return (error: any): Observable<never> => {
       console.error(`Error during ${operation}:`, error); // Log to console for debugging
       const errorMessage = error.error?.message || `An error occurred while ${operation}. Please try again later.`;
+      // Use a UI-friendly notification service (replace this with a more robust notification system)
       alert(errorMessage);
       return throwError(() => new Error(errorMessage));
     };
