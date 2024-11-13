@@ -20,8 +20,8 @@ export class LoggerComponent {
   painLevel: number = 5;
   stressLevel: number = 5;
   sleepHours: number = 7;
-  exerciseDone: boolean = false;
-  tookMedication: boolean = false;
+  exerciseDone: boolean | null = null; // Initially null to avoid pre-selection
+  tookMedication: boolean | null = null; // Initially null to avoid pre-selection
   successMessage: string = '';
   errorMessage: string = '';
 
@@ -49,12 +49,11 @@ export class LoggerComponent {
       stress_level: this.stressLevel,
       sleep_hours: this.sleepHours,
       exercise_done: this.exerciseDone,
-      exercise_types: this.exerciseTypes.filter((e) => e.selected).map((e) => e.name), // Ensure this aligns with backend expectations
+      exercise_types: this.exerciseDone ? this.exerciseTypes.filter(e => e.selected).map(e => e.name) : [],
       took_medication: this.tookMedication,
       user_id: userId // Attach user_id here if required by backend payload structure
     };
 
-    // Call the logSymptoms method with only the loggedData object
     this.apiService.logSymptoms(loggedData).subscribe(
       () => {
         this.successMessage = 'Your symptoms have been logged successfully!';
@@ -68,7 +67,13 @@ export class LoggerComponent {
   }
 
   isFormValid(): boolean {
-    return this.painLevel > 0 && this.stressLevel > 0 && this.sleepHours >= 0;
+    return (
+      this.painLevel > 0 &&
+      this.stressLevel > 0 &&
+      this.sleepHours >= 0 &&
+      this.exerciseDone !== null &&
+      this.tookMedication !== null
+    );
   }
 
   getProgress(): number {
@@ -76,8 +81,8 @@ export class LoggerComponent {
     if (this.painLevel > 0) progress += 25;
     if (this.stressLevel > 0) progress += 25;
     if (this.sleepHours >= 0) progress += 25;
-    if (this.exerciseDone) progress += 15;
-    if (this.tookMedication) progress += 10;
+    if (this.exerciseDone !== null) progress += 15;
+    if (this.tookMedication !== null) progress += 10;
     return progress;
   }
 
@@ -85,8 +90,8 @@ export class LoggerComponent {
     this.painLevel = 5;
     this.stressLevel = 5;
     this.sleepHours = 7;
-    this.exerciseDone = false;
-    this.tookMedication = false;
+    this.exerciseDone = null;
+    this.tookMedication = null;
     this.exerciseTypes.forEach((exercise: ExerciseType) => (exercise.selected = false));
     this.successMessage = '';
     this.errorMessage = '';
