@@ -8,7 +8,7 @@ interface SymptomLog {
   pain_level: number;
   stress_level: number;
   sleep_hours: number;
-  flare_up: boolean;
+  flare_up: boolean; // Expected to be boolean in the UI
 }
 
 @Component({
@@ -46,9 +46,13 @@ export class DashboardComponent implements OnInit {
 
   fetchData(userId: string): void {
     this.apiService.getSymptomLogs(userId).subscribe(
-      (data: SymptomLog[]) => {
+      (data: any[]) => { // Use `any` for initial data from the API
         if (data.length > 0) {
-          this.symptomLogs = data;
+          // Map raw data to `SymptomLog` format
+          this.symptomLogs = data.map(log => ({
+            ...log,
+            flare_up: log.flare_up === 1 // Convert `1` or `0` to `boolean`
+          }));
           this.calculateAverages();
           this.generateInsights();
         } else {
