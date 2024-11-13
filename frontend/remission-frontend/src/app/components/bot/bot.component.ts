@@ -29,10 +29,10 @@ export class BotComponent implements OnInit {
     }
 
     this.apiService.getBotAnalysis(userId).subscribe(
-      (data: { analysis_summary?: string }) => {
-        if (data.analysis_summary) {
-          this.messages.push("CHIIP: Hey there! Here's what I've noticed about your symptoms:");
-          this.messages.push(data.analysis_summary);
+      (data: { classification: string; insights: string[] }) => {
+        if (data.insights && data.insights.length > 0) {
+          this.messages.push(`CHIIP: Hey there! Here's what I've noticed about your symptoms:`);
+          data.insights.forEach((insight) => this.messages.push(insight));
         } else {
           this.messages.push("CHIIP: Hmm, I don't see much recent data. Let's start logging!");
         }

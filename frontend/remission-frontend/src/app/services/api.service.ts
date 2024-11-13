@@ -18,33 +18,19 @@ export class ApiService {
    */
   autoAssignUser(): Observable<{ user_id: string }> {
     const url = `${this.baseUrl}/auto-assign-user`;
-    return this.http.get<{ user_id: string }>(url, { headers: this.headers }).pipe(
+    return this.http.post<{ user_id: string }>(url, {}, { headers: this.headers }).pipe(
       catchError(this.handleError('auto-assigning a user ID'))
-    );
-  }
-
-  /**
-   * Validates if a given User ID exists in the system.
-   * @param userId The User ID to validate.
-   * @returns Observable for API response.
-   */
-  validateUserId(userId: string): Observable<{ message: string }> {
-    const url = `${this.baseUrl}/validate-user/${userId}`;
-    return this.http.get<{ message: string }>(url, { headers: this.headers }).pipe(
-      catchError(this.handleError('validating the user ID'))
     );
   }
 
   /**
    * Logs symptoms for a user.
    * @param symptomData Object containing symptom data (pain level, stress, etc.)
-   * @param userId The ID of the user logging symptoms.
    * @returns Observable for API response.
    */
-  logSymptoms(symptomData: any, userId: string): Observable<{ message: string }> {
+  logSymptoms(symptomData: any): Observable<{ message: string }> {
     const url = `${this.baseUrl}/log-symptoms`;
-    const payload = { ...symptomData, user_id: userId };
-    return this.http.post<{ message: string }>(url, payload, { headers: this.headers }).pipe(
+    return this.http.post<{ message: string }>(url, symptomData, { headers: this.headers }).pipe(
       catchError(this.handleError('logging symptoms'))
     );
   }
@@ -62,14 +48,14 @@ export class ApiService {
   }
 
   /**
-   * Fetches trend analysis insights from CHIIP.
+   * Fetches insights from CHIIP based on user symptom logs.
    * @param userId The ID of the user to analyze logs for.
    * @returns Observable for bot analysis response.
    */
-  getBotAnalysis(userId: string): Observable<any> {
+  getBotAnalysis(userId: string): Observable<{ classification: string; insights: string[] }> {
     const url = `${this.baseUrl}/bot-analysis`;
     const payload = { user_id: userId };
-    return this.http.post<any>(url, payload, { headers: this.headers }).pipe(
+    return this.http.post<{ classification: string; insights: string[] }>(url, payload, { headers: this.headers }).pipe(
       catchError(this.handleError('fetching bot analysis'))
     );
   }
@@ -79,11 +65,23 @@ export class ApiService {
    * @param userMessage The message from the user to the bot.
    * @returns Observable with the bot's response.
    */
-  getBotResponse(userMessage: string): Observable<any> {
+  getBotResponse(userMessage: string): Observable<{ response: string }> {
     const url = `${this.baseUrl}/bot-response`;
     const payload = { message: userMessage };
-    return this.http.post<any>(url, payload, { headers: this.headers }).pipe(
+    return this.http.post<{ response: string }>(url, payload, { headers: this.headers }).pipe(
       catchError(this.handleError('sending a bot message'))
+    );
+  }
+
+  /**
+   * Validates if a given User ID exists in the system.
+   * @param userId The User ID to validate.
+   * @returns Observable for API response.
+   */
+  validateUserId(userId: string): Observable<{ message: string }> {
+    const url = `${this.baseUrl}/validate-user/${userId}`;
+    return this.http.get<{ message: string }>(url, { headers: this.headers }).pipe(
+      catchError(this.handleError('validating the user ID'))
     );
   }
 
@@ -96,7 +94,6 @@ export class ApiService {
     return (error: any): Observable<never> => {
       console.error(`Error during ${operation}:`, error); // Log to console for debugging
       const errorMessage = error.error?.message || `An error occurred while ${operation}. Please try again later.`;
-      // Use a UI-friendly notification service (replace this with a more robust notification system)
       alert(errorMessage);
       return throwError(() => new Error(errorMessage));
     };
