@@ -1,30 +1,31 @@
 <div class="dashboard-container">
   <h1>Your Symptom Dashboard</h1>
 
+  <!-- Motivational Quote -->
+  <blockquote>"The human spirit is stronger than anything that can happen to it."<br>- C.C. Scott</blockquote>
+
   <!-- Loading Spinner or Error Message -->
   <div *ngIf="loading" class="loading">Loading data...</div>
   <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
 
-  <!-- Charts Container -->
+  <!-- Dashboard Content -->
   <div class="charts-container" *ngIf="!loading && !errorMessage">
-    <!-- Symptom Trend Over Time (Line Chart) -->
+    <!-- Sleep Hours Trend Chart -->
     <div class="chart">
-      <h3>Symptom Trends Over Time</h3>
-      <canvas id="symptomTrendChart"></canvas>
+      <h3>Sleep Hours Trend</h3>
+      <canvas id="sleepTrendChart"></canvas>
     </div>
 
-    <!-- Flare-Up Distribution (Pie Chart) -->
+    <!-- Stress Level Trend Chart -->
     <div class="chart">
-      <h3>Flare-Up Distribution</h3>
-      <canvas id="flareDistributionChart"></canvas>
+      <h3>Stress Level Trend</h3>
+      <canvas id="stressTrendChart"></canvas>
     </div>
 
-    <!-- Symptom Breakdown by Category (Bar Chart) -->
+    <!-- Average Pain Level Card -->
     <div class="chart">
-      <h3>Symptom Breakdown by Category</h3>
-      <canvas id="symptomBreakdownChart"></canvas>
+      <h3>Average Pain Level</h3>
+      <p class="stat-display">{{ avgPainLevel }}</p>
     </div>
   </div>
 </div>
-
-
