@@ -1,40 +1,47 @@
-/* Dashboard Container */
+/* General Container */
+body {
+  background: linear-gradient(135deg, #cce7f5, #e8f9f9); /* Calm blue background gradient */
+  font-family: 'Lato', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
 .dashboard-container {
   padding: 20px;
   text-align: center;
-  font-family: 'Lato', sans-serif;
-  background: linear-gradient(135deg, #e0f7fa, #ffffff);
   border-radius: 15px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   animation: fadeIn 1s ease-in-out;
 }
 
+/* Smooth Fade In */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
+/* Header and Quote Styling */
 h1 {
-  color: #00796b;
-  font-size: 28px;
+  color: #005f73;
+  font-size: 32px;
   margin-bottom: 20px;
 }
 
 blockquote {
   font-style: italic;
-  color: #555;
+  color: #264653;
   margin: 10px 0 20px;
   padding: 10px;
-  border-left: 5px solid #00796b;
-  background-color: #f1f8e9;
+  border-left: 5px solid #00afb9;
+  background-color: #d4f1f4;
+  border-radius: 8px;
 }
 
 /* Summary Stats */
 .stat-summary {
   margin-top: 20px;
   font-size: 18px;
-  color: #004d40;
-  background-color: #f1f8e9;
+  color: #1d3557;
+  background-color: #d8f3dc;
   padding: 15px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -58,25 +65,34 @@ th, td {
 }
 
 th {
-  background-color: #00796b;
+  background-color: #005f73;
   color: white;
 }
 
 tr.flare {
-  background-color: #ffebee;
+  background-color: #ffcccb; /* Softer coral for flares */
 }
 
 tr:hover {
-  background-color: #f1f1f1;
+  background-color: #f1f9ff;
 }
 
-/* Insights */
+/* Insights Styling */
 .insights {
   margin-top: 20px;
   padding: 10px;
-  background-color: #fff8e1;
+  background-color: #eafaf1;
   border-radius: 10px;
   font-size: 16px;
-  color: #f57c00;
+  color: #007f5f;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading/Error Messages */
+.loading, .error-message {
+  font-size: 16px;
+  color: #d00000;
+  margin-top: 15px;
+  font-weight: bold;
+  animation: fadeIn 1s ease-in-out;
 }
