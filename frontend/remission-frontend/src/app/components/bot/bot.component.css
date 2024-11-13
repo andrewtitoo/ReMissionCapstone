@@ -1,32 +1,32 @@
 .bot-container {
   padding: 20px;
-  max-width: 650px; /* Slightly larger */
+  max-width: 650px;
   margin: 0 auto;
   text-align: center;
   font-family: 'Lato', sans-serif;
-  color: #004d40; /* Calming green for text */
-  background: linear-gradient(135deg, #e0f7fa, #ffffff);
+  color: #003d5b; /* Calming blue for text */
+  background: linear-gradient(135deg, #caf0f8, #ffffff);
   border-radius: 15px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   animation: fadeIn 1s ease-in-out;
 }
 
 h1 {
-  color: #00796b;
+  color: #0077b6;
   font-size: 28px;
   margin-bottom: 10px;
 }
 
 .acronym {
   font-size: 14px;
-  color: #00796b;
+  color: #023e8a;
   margin-top: -10px;
   font-style: italic;
 }
 
 .chat-box {
-  height: 450px; /* Larger chat box */
-  border: 2px solid #b2dfdb;
+  height: 450px;
+  border: 2px solid #90e0ef;
   padding: 15px;
   overflow-y: auto;
   margin-top: 20px;
@@ -40,11 +40,12 @@ h1 {
   margin: 10px 0;
   padding: 10px;
   background-color: #e1f5fe;
-  color: #0277bd;
+  color: #0077b6;
   border-radius: 12px;
   display: block;
   max-width: 90%;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+  word-wrap: break-word;
 }
 
 @keyframes fadeIn {
