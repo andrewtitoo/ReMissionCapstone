@@ -16,12 +16,12 @@ interface SymptomLog {
   templateUrl: './dashboard.component.html',
   standalone: true,
   styleUrls: ['./dashboard.component.css'],
-  imports: [CommonModule, HttpClientModule]
+  imports: [CommonModule, HttpClientModule],
 })
 export class DashboardComponent implements OnInit {
   loading = true;
   errorMessage: string | null = null;
-  avgPainLevel = 0; // To store calculated average pain level
+  avgPainLevel: number = 0; // Store calculated average pain level
 
   constructor(private apiService: ApiService) {
     Chart.register(...registerables);
@@ -46,9 +46,10 @@ export class DashboardComponent implements OnInit {
     this.apiService.getSymptomLogs(userId).subscribe(
       (data: SymptomLog[]) => {
         if (data.length > 0) {
-          this.createSleepTrendChart(data);
-          this.createStressTrendChart(data);
-          this.calculateAveragePain(data);
+          const last7Logs = data.slice(-7); // Focus on the latest 7 logs
+          this.createSleepTrendChart(last7Logs);
+          this.createStressTrendChart(last7Logs);
+          this.calculateAveragePain(last7Logs);
         } else {
           this.errorMessage = 'No data available to display.';
         }
@@ -63,9 +64,8 @@ export class DashboardComponent implements OnInit {
   }
 
   createSleepTrendChart(data: SymptomLog[]): void {
-    const last7Logs = data.slice(-7);
-    const labels = last7Logs.map(entry => new Date(entry.logged_at).toLocaleDateString());
-    const sleepHours = last7Logs.map(entry => entry.sleep_hours);
+    const labels = data.map((entry) => new Date(entry.logged_at).toLocaleDateString());
+    const sleepHours = data.map((entry) => entry.sleep_hours);
 
     new Chart('sleepTrendChart', {
       type: 'line',
@@ -76,25 +76,24 @@ export class DashboardComponent implements OnInit {
             label: 'Sleep Hours',
             data: sleepHours,
             borderColor: '#36a2eb',
-            fill: true,
             backgroundColor: 'rgba(54, 162, 235, 0.2)',
-          }
-        ]
+            fill: true,
+          },
+        ],
       },
       options: {
         responsive: true,
         plugins: {
           legend: { position: 'top' },
-          title: { display: true, text: 'Sleep Hours Trend (Last 7 Logs)' }
-        }
-      }
+          title: { display: true, text: 'Sleep Hours Trend (Last 7 Logs)' },
+        },
+      },
     });
   }
 
   createStressTrendChart(data: SymptomLog[]): void {
-    const last7Logs = data.slice(-7);
-    const labels = last7Logs.map(entry => new Date(entry.logged_at).toLocaleDateString());
-    const stressLevels = last7Logs.map(entry => entry.stress_level);
+    const labels = data.map((entry) => new Date(entry.logged_at).toLocaleDateString());
+    const stressLevels = data.map((entry) => entry.stress_level);
 
     new Chart('stressTrendChart', {
       type: 'bar',
@@ -102,24 +101,24 @@ export class DashboardComponent implements OnInit {
         labels,
         datasets: [
           {
-            label: 'Stress Level',
+            label: 'Stress Levels',
             data: stressLevels,
             backgroundColor: '#ff6384',
-          }
-        ]
+          },
+        ],
       },
       options: {
         responsive: true,
         plugins: {
           legend: { position: 'top' },
-          title: { display: true, text: 'Stress Level Trend (Last 7 Logs)' }
-        }
-      }
+          title: { display: true, text: 'Stress Levels Trend (Last 7 Logs)' },
+        },
+      },
     });
   }
 
   calculateAveragePain(data: SymptomLog[]): void {
     const totalPain = data.reduce((sum, log) => sum + log.pain_level, 0);
-    this.avgPainLevel = parseFloat((totalPain / data.length).toFixed(1)); // Convert string to number
+    this.avgPainLevel = parseFloat((totalPain / data.length).toFixed(1));
   }
 }
