@@ -1,6 +1,6 @@
 .bot-container {
   padding: 20px;
-  max-width: 600px;
+  max-width: 650px; /* Slightly larger */
   margin: 0 auto;
   text-align: center;
   font-family: 'Lato', sans-serif;
@@ -12,7 +12,7 @@
 }
 
 h1 {
-  color: #00796b; /* Friendly teal tone */
+  color: #00796b;
   font-size: 28px;
   margin-bottom: 10px;
 }
@@ -25,7 +25,7 @@ h1 {
 }
 
 .chat-box {
-  height: 350px;
+  height: 450px; /* Larger chat box */
   border: 2px solid #b2dfdb;
   padding: 15px;
   overflow-y: auto;
@@ -39,56 +39,19 @@ h1 {
   text-align: left;
   margin: 10px 0;
   padding: 10px;
-  background-color: #e1f5fe; /* Friendly blue */
-  color: #0277bd; /* Text color for CHIIP */
+  background-color: #e1f5fe;
+  color: #0277bd;
   border-radius: 12px;
-  display: inline-block;
-  max-width: 75%;
+  display: block;
+  max-width: 90%;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.user-message {
-  text-align: right;
-  margin: 10px 0;
-  padding: 10px;
-  background-color: #c8e6c9; /* Light green for user */
-  color: #2e7d32;
-  border-radius: 12px;
-  display: inline-block;
-  max-width: 75%;
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.user-input {
-  margin-top: 10px;
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-input[type="text"] {
-  flex: 1;
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid #b2dfdb;
-  font-size: 16px;
-}
-
-button {
-  padding: 10px 20px;
-  background-color: #00838f;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background-color 0.3s ease-in-out;
-}
-
-button:hover {
-  background-color: #005662;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
