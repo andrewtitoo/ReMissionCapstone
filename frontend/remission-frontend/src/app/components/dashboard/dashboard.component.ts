@@ -9,9 +9,6 @@ interface SymptomLog {
   pain_level: number;
   stress_level: number;
   sleep_hours: number;
-  exercise_done: boolean;
-  took_medication: boolean;
-  flare_up: number; // 1 for flare-up, 0 for no flare
 }
 
 @Component({
@@ -24,6 +21,7 @@ interface SymptomLog {
 export class DashboardComponent implements OnInit {
   loading = true;
   errorMessage: string | null = null;
+  avgPainLevel = 0; // To store calculated average pain level
 
   constructor(private apiService: ApiService) {
     Chart.register(...registerables);
@@ -48,9 +46,9 @@ export class DashboardComponent implements OnInit {
     this.apiService.getSymptomLogs(userId).subscribe(
       (data: SymptomLog[]) => {
         if (data.length > 0) {
-          this.createSymptomTrendChart(data);
-          this.createFlareDistributionChart(data);
-          this.createSymptomBreakdownChart(data);
+          this.createSleepTrendChart(data);
+          this.createStressTrendChart(data);
+          this.calculateAveragePain(data);
         } else {
           this.errorMessage = 'No data available to display.';
         }
@@ -64,27 +62,49 @@ export class DashboardComponent implements OnInit {
     );
   }
 
-  createSymptomTrendChart(data: SymptomLog[]): void {
-    const labels = data.map(entry => new Date(entry.logged_at).toLocaleDateString());
-    const painLevels = data.map(entry => entry.pain_level);
-    const stressLevels = data.map(entry => entry.stress_level);
+  createSleepTrendChart(data: SymptomLog[]): void {
+    const last7Logs = data.slice(-7);
+    const labels = last7Logs.map(entry => new Date(entry.logged_at).toLocaleDateString());
+    const sleepHours = last7Logs.map(entry => entry.sleep_hours);
 
-    new Chart('symptomTrendChart', {
+    new Chart('sleepTrendChart', {
       type: 'line',
       data: {
         labels,
         datasets: [
           {
-            label: 'Pain Level',
-            data: painLevels,
-            borderColor: '#ff6384',
-            fill: false,
-          },
+            label: 'Sleep Hours',
+            data: sleepHours,
+            borderColor: '#36a2eb',
+            fill: true,
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'top' },
+          title: { display: true, text: 'Sleep Hours Trend (Last 7 Logs)' }
+        }
+      }
+    });
+  }
+
+  createStressTrendChart(data: SymptomLog[]): void {
+    const last7Logs = data.slice(-7);
+    const labels = last7Logs.map(entry => new Date(entry.logged_at).toLocaleDateString());
+    const stressLevels = last7Logs.map(entry => entry.stress_level);
+
+    new Chart('stressTrendChart', {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
           {
             label: 'Stress Level',
             data: stressLevels,
-            borderColor: '#36a2eb',
-            fill: false,
+            backgroundColor: '#ff6384',
           }
         ]
       },
@@ -92,63 +112,14 @@ export class DashboardComponent implements OnInit {
         responsive: true,
         plugins: {
           legend: { position: 'top' },
-          title: { display: true, text: 'Symptom Trends Over Time' }
+          title: { display: true, text: 'Stress Level Trend (Last 7 Logs)' }
         }
       }
     });
   }
 
-  createFlareDistributionChart(data: SymptomLog[]): void {
-    const flareCounts = [
-      data.filter(entry => entry.flare_up === 1).length,
-      data.filter(entry => entry.flare_up === 0).length
-    ];
-
-    new Chart('flareDistributionChart', {
-      type: 'pie',
-      data: {
-        labels: ['Flare-Ups', 'No Flare-Ups'],
-        datasets: [
-          {
-            data: flareCounts,
-            backgroundColor: ['#ff6384', '#36a2eb']
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: 'top' },
-          title: { display: true, text: 'Flare-Up Distribution' }
-        }
-      }
-    });
-  }
-
-  createSymptomBreakdownChart(data: SymptomLog[]): void {
-    const avgSleep = data.reduce((sum, log) => sum + log.sleep_hours, 0) / data.length;
-    const avgExercise = (data.filter(log => log.exercise_done).length / data.length) * 100;
-    const avgMedication = (data.filter(log => log.took_medication).length / data.length) * 100;
-
-    new Chart('symptomBreakdownChart', {
-      type: 'bar',
-      data: {
-        labels: ['Avg Sleep Hours', 'Exercise Done (%)', 'Medication Taken (%)'],
-        datasets: [
-          {
-            label: 'Symptom Averages',
-            data: [avgSleep, avgExercise, avgMedication],
-            backgroundColor: ['#ffcd56', '#4bc0c0', '#ff9f40']
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: 'top' },
-          title: { display: true, text: 'Symptom Breakdown by Category' }
-        }
-      }
-    });
+  calculateAveragePain(data: SymptomLog[]): void {
+    const totalPain = data.reduce((sum, log) => sum + log.pain_level, 0);
+    this.avgPainLevel = parseFloat((totalPain / data.length).toFixed(1)); // Convert string to number
   }
 }
