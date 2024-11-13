@@ -25,7 +25,7 @@ export class ApiService {
 
   /**
    * Logs symptoms for a user.
-   * @param symptomData Object containing symptom data (pain level, stress, etc.)
+   * @param symptomData Object containing symptom data (pain level, stress, etc.).
    * @returns Observable for API response.
    */
   logSymptoms(symptomData: any): Observable<{ message: string }> {
@@ -79,8 +79,8 @@ export class ApiService {
    * @returns Observable for API response.
    */
   validateUserId(userId: string): Observable<{ message: string }> {
-    const url = `${this.baseUrl}/validate-user/${userId}`;
-    return this.http.get<{ message: string }>(url, { headers: this.headers }).pipe(
+    const url = `${this.baseUrl}/auto-assign-user`; // Adjust if your endpoint differs
+    return this.http.post<{ message: string }>(url, { user_id: userId }, { headers: this.headers }).pipe(
       catchError(this.handleError('validating the user ID'))
     );
   }
