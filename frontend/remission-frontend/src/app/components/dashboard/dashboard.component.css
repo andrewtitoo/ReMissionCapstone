@@ -9,20 +9,17 @@
   animation: fadeIn 1s ease-in-out;
 }
 
-/* Smooth Fade In */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-.dashboard-container h1 {
+h1 {
   color: #00796b;
   font-size: 28px;
   margin-bottom: 20px;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* Motivational Quote */
 blockquote {
   font-style: italic;
   color: #555;
@@ -32,53 +29,54 @@ blockquote {
   background-color: #f1f8e9;
 }
 
-/* Charts Container */
-.charts-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-evenly;
-  gap: 20px;
+/* Summary Stats */
+.stat-summary {
   margin-top: 20px;
-}
-
-/* Individual Chart */
-.chart {
-  border: 1px solid #b2dfdb;
-  padding: 20px;
-  width: 100%;
-  max-width: 320px;
-  height: 320px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-radius: 15px;
-  background-color: #ffffff;
-  transition: transform 0.3s ease-in-out, background-color 0.3s ease-in-out;
-}
-
-.chart:hover {
-  transform: translateY(-5px);
-  background-color: #e0f2f1;
-}
-
-.chart h3 {
-  margin-bottom: 10px;
-  font-size: 20px;
+  font-size: 18px;
   color: #004d40;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  background-color: #f1f8e9;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Average Pain Stat Display */
-.stat-display {
-  font-size: 24px;
-  color: #ff9800;
+/* Table Styling */
+.table-container {
+  margin-top: 20px;
+  text-align: left;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
   margin-top: 10px;
-  font-weight: bold;
 }
 
-/* Loading and Error Messages */
-.loading, .error-message {
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+th {
+  background-color: #00796b;
+  color: white;
+}
+
+tr.flare {
+  background-color: #ffebee;
+}
+
+tr:hover {
+  background-color: #f1f1f1;
+}
+
+/* Insights */
+.insights {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #fff8e1;
+  border-radius: 10px;
   font-size: 16px;
-  color: #d32f2f;
-  margin-top: 15px;
-  font-weight: bold;
-  animation: fadeIn 1s ease-in-out;
+  color: #f57c00;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }

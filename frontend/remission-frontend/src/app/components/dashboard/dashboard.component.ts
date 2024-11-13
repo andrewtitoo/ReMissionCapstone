@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { Chart, registerables } from 'chart.js';
 import { ApiService } from '../../services/api.service';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
@@ -9,6 +8,7 @@ interface SymptomLog {
   pain_level: number;
   stress_level: number;
   sleep_hours: number;
+  flare_up: boolean;
 }
 
 @Component({
@@ -21,11 +21,13 @@ interface SymptomLog {
 export class DashboardComponent implements OnInit {
   loading = true;
   errorMessage: string | null = null;
-  avgPainLevel: number = 0; // Store calculated average pain level
+  symptomLogs: SymptomLog[] = [];
+  avgPainLevel: number = 0;
+  avgStressLevel: number = 0;
+  avgSleepHours: number = 0;
+  insights: string[] = [];
 
-  constructor(private apiService: ApiService) {
-    Chart.register(...registerables);
-  }
+  constructor(private apiService: ApiService) {}
 
   ngOnInit(): void {
     this.initializeAndFetchData();
@@ -39,23 +41,19 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
-    this.fetchAndDisplayCharts(storedUserId);
+    this.fetchData(storedUserId);
   }
 
-  fetchAndDisplayCharts(userId: string): void {
+  fetchData(userId: string): void {
     this.apiService.getSymptomLogs(userId).subscribe(
       (data: SymptomLog[]) => {
-        console.log('Data from API:', data); // Debugging output
-
         if (data.length > 0) {
-          const last7Logs = data.slice(-7); // Take the last 7 logs
-          this.createSleepTrendChart(last7Logs);
-          this.createStressTrendChart(last7Logs);
-          this.calculateAveragePain(last7Logs);
+          this.symptomLogs = data;
+          this.calculateAverages();
+          this.generateInsights();
         } else {
           this.errorMessage = 'No data available to display.';
         }
-
         this.loading = false;
       },
       (error: any) => {
@@ -66,62 +64,29 @@ export class DashboardComponent implements OnInit {
     );
   }
 
-  createSleepTrendChart(data: SymptomLog[]): void {
-    const labels = data.map((entry) => new Date(entry.logged_at).toLocaleDateString());
-    const sleepHours = data.map((entry) => entry.sleep_hours);
+  calculateAverages(): void {
+    const totalPain = this.symptomLogs.reduce((sum, log) => sum + log.pain_level, 0);
+    const totalStress = this.symptomLogs.reduce((sum, log) => sum + log.stress_level, 0);
+    const totalSleep = this.symptomLogs.reduce((sum, log) => sum + log.sleep_hours, 0);
 
-    new Chart('sleepTrendChart', {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: 'Sleep Hours',
-            data: sleepHours,
-            borderColor: '#36a2eb',
-            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-            fill: true,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: 'top' },
-          title: { display: true, text: 'Sleep Hours Trend (Last 7 Logs)' },
-        },
-      },
-    });
+    this.avgPainLevel = parseFloat((totalPain / this.symptomLogs.length).toFixed(1));
+    this.avgStressLevel = parseFloat((totalStress / this.symptomLogs.length).toFixed(1));
+    this.avgSleepHours = parseFloat((totalSleep / this.symptomLogs.length).toFixed(1));
   }
 
-  createStressTrendChart(data: SymptomLog[]): void {
-    const labels = data.map((entry) => new Date(entry.logged_at).toLocaleDateString());
-    const stressLevels = data.map((entry) => entry.stress_level);
+  generateInsights(): void {
+    const latestLog = this.symptomLogs[0];
+    if (latestLog.flare_up) {
+      this.insights.push("Recent log indicates a potential flare-up. Review your symptoms carefully.");
+    } else {
+      this.insights.push("You're doing great! No recent signs of flare-up.");
+    }
 
-    new Chart('stressTrendChart', {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: 'Stress Levels',
-            data: stressLevels,
-            backgroundColor: '#ff6384',
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: 'top' },
-          title: { display: true, text: 'Stress Levels Trend (Last 7 Logs)' },
-        },
-      },
-    });
-  }
-
-  calculateAveragePain(data: SymptomLog[]): void {
-    const totalPain = data.reduce((sum, log) => sum + log.pain_level, 0);
-    this.avgPainLevel = parseFloat((totalPain / data.length).toFixed(1));
+    if (this.avgSleepHours < 7) {
+      this.insights.push("Your average sleep is below 7 hours. Aim for better rest.");
+    }
+    if (this.avgStressLevel > 6) {
+      this.insights.push("Your stress levels are relatively high. Consider stress-reducing activities.");
+    }
   }
 }
