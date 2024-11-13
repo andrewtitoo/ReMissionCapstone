@@ -25,10 +25,11 @@
     <!-- Exercise -->
     <div class="form-group">
       <label>Did you exercise today?</label>
-      <div class="toggle-switch">
-        <input type="checkbox" [(ngModel)]="exerciseDone" name="exerciseDone" />
-        <span *ngIf="exerciseDone">Yes</span>
-        <span *ngIf="!exerciseDone">No</span>
+      <div>
+        <input type="radio" id="exerciseYes" [(ngModel)]="exerciseDone" [value]="true" name="exerciseDone" />
+        <label for="exerciseYes">Yes</label>
+        <input type="radio" id="exerciseNo" [(ngModel)]="exerciseDone" [value]="false" name="exerciseDone" />
+        <label for="exerciseNo">No</label>
       </div>
 
       <!-- If exercised, what kind? -->
@@ -44,10 +45,11 @@
     <!-- Medication -->
     <div class="form-group">
       <label>Did you take your medication today?</label>
-      <div class="toggle-switch">
-        <input type="checkbox" [(ngModel)]="tookMedication" name="tookMedication" />
-        <span *ngIf="tookMedication">Yes</span>
-        <span *ngIf="!tookMedication">No</span>
+      <div>
+        <input type="radio" id="medicationYes" [(ngModel)]="tookMedication" [value]="true" name="tookMedication" />
+        <label for="medicationYes">Yes</label>
+        <input type="radio" id="medicationNo" [(ngModel)]="tookMedication" [value]="false" name="tookMedication" />
+        <label for="medicationNo">No</label>
       </div>
     </div>
 
