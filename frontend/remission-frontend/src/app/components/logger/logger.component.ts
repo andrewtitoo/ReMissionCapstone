@@ -51,11 +51,11 @@ export class LoggerComponent {
       exercise_done: this.exerciseDone,
       exercise_types: this.exerciseTypes.filter((e) => e.selected).map((e) => e.name), // Ensure this aligns with backend expectations
       took_medication: this.tookMedication,
-      user_id: userId  // Attach user_id here if required by backend payload structure
+      user_id: userId // Attach user_id here if required by backend payload structure
     };
 
-
-    this.apiService.logSymptoms(loggedData, userId).subscribe(
+    // Call the logSymptoms method with only the loggedData object
+    this.apiService.logSymptoms(loggedData).subscribe(
       () => {
         this.successMessage = 'Your symptoms have been logged successfully!';
         this.resetForm();
