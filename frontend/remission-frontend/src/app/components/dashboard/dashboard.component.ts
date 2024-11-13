@@ -45,14 +45,17 @@ export class DashboardComponent implements OnInit {
   fetchAndDisplayCharts(userId: string): void {
     this.apiService.getSymptomLogs(userId).subscribe(
       (data: SymptomLog[]) => {
+        console.log('Data from API:', data); // Debugging output
+
         if (data.length > 0) {
-          const last7Logs = data.slice(-7); // Focus on the latest 7 logs
+          const last7Logs = data.slice(-7); // Take the last 7 logs
           this.createSleepTrendChart(last7Logs);
           this.createStressTrendChart(last7Logs);
           this.calculateAveragePain(last7Logs);
         } else {
           this.errorMessage = 'No data available to display.';
         }
+
         this.loading = false;
       },
       (error: any) => {

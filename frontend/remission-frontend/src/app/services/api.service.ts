@@ -40,10 +40,13 @@ export class ApiService {
    * @param userId The ID of the user to retrieve logs for.
    * @returns Observable for logged symptom data.
    */
-  getSymptomLogs(userId: string): Observable<any[]> {
+  getSymptomLogs(userId: string): Observable<SymptomLog[]> {
     const url = `${this.baseUrl}/symptom-logs?user_id=${userId}`;
-    return this.http.get<any[]>(url, { headers: this.headers }).pipe(
-      catchError(this.handleError('fetching symptom logs'))
+    return this.http.get<SymptomLog[]>(url, { headers: this.headers }).pipe(
+      catchError((error) => {
+        console.error('API Error [getSymptomLogs]:', error); // Log detailed error for debugging
+        return throwError(() => new Error(`Failed to fetch symptom logs: ${error.message || error}`));
+      })
     );
   }
 
@@ -98,4 +101,18 @@ export class ApiService {
       return throwError(() => new Error(errorMessage));
     };
   }
+}
+
+/**
+ * Interface to describe symptom log data structure.
+ */
+interface SymptomLog {
+  logged_at: string;
+  pain_level: number;
+  stress_level: number;
+  sleep_hours: number;
+  exercise_done?: boolean;
+  exercise_type?: string[];
+  took_medication?: boolean;
+  flare_up?: number;
 }
